@@ -1,78 +1,16 @@
-/* Layout: sized from the viewport so it fits one screen. Header, then two raised panels (question | answer), then the transport bar.
-   Emphasis comes from contrast with neighbours: chrome sits in recessed tracks with muted icons, so the panels, the selected chip,
-   the play button and the result badge stand out without extra colour.
-   Theme: "Midnight" only. Warm off-white text on near-black, one iris accent, champagne for hints.
-   Colour code: iris = active/target, emerald = correct, coral = wrong, champagne = hint. */
-:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
-html { scroll-padding-top: env(safe-area-inset-top, 0px); }
-body { margin: 0; }
-img { max-width: 100%; }
-
+/* Explorer layout: sized from the viewport so it fits one screen. Header, then two raised panels (question | answer),
+   then the transport bar. Shared tokens and components live in base.css. */
 :root {
-  color-scheme: dark;
-  --bg: #0a0a0f;
-  --glow: rgba(139, 124, 255, .16);
-  --track: #1b1b25;
-  --chip: #2c2b3a;
-  --panel: #15151e;
-  --sunken: #0e0e14;
-  --ink: #f4f1ea;
-  --muted: #c2bdb3;
-  --faint: #928d84;
-  --line: #262532;
-  --line-strong: #3d3b4a;
-  --accent: #a597ff;
-  --accent-2: #c79bff;
-  --accent-ink: #0b0b10;
-  --ok: #45d69a;
-  --bad: #ff8576;
-  --hint: #f0cf8c;
-  --hint-soft: #2b2518;
-  --edge: rgba(255, 255, 255, .06);
-  --shadow: 0 18px 44px -22px rgba(0, 0, 0, .85);
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .07);
-  --f-display: "Bricolage Grotesque", "Segoe UI", sans-serif;
-  --f-body: "Public Sans", "Segoe UI", sans-serif;
-  --f-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
-  --pad: 16px;
-  --pp: 16px;
   --cg: 20px;
   /* stage width inside a panel: the rest of the screen takes ~362px of height and ~(2 * panel padding + gap) of width */
   --s: min(clamp(220px, calc(100dvh - 362px), 540px), calc((100vw - 2 * var(--pad) - 4 * var(--pp) - var(--cg) - 4px) / 2));
 }
-/* the problem sheets are black-on-white; invert them so they sit on the dark panels */
-.opt::before, .static img { filter: invert(.92) hue-rotate(180deg) sepia(.06); }
+.static img { filter: var(--sheet-filter); }
 
-* { box-sizing: border-box; }
-body { background: radial-gradient(1100px 520px at 50% -12%, var(--glow), transparent 70%) fixed, var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5; padding: var(--pad); min-height: 100dvh; -webkit-font-smoothing: antialiased; }
 .app { width: calc(2 * var(--s) + 4 * var(--pp) + var(--cg) + 4px); max-width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
-h1 { font-family: var(--f-display); font-size: 1.45rem; letter-spacing: -.01em; line-height: 1.1; margin: 0; white-space: nowrap; }
-h1 .grad { background: linear-gradient(120deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .formula { font-family: var(--f-mono); font-size: .72rem; color: var(--faint); letter-spacing: .06em; white-space: nowrap; }
-.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-button, textarea { font: inherit; color: inherit; }
-button { cursor: pointer; }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* hard-left / hard-right row */
-.edge { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
-.edge > .l, .edge > .r { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.edge > .r { margin-left: auto; justify-content: flex-end; }
-
-/* icons */
-.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; display: block; }
-.i.sm { width: 16px; height: 16px; }
-
-/* ghost buttons: quiet until hovered or pressed */
-.ibtn { width: 40px; height: 40px; display: inline-grid; place-items: center; border: 0; background: transparent; color: var(--muted); border-radius: 10px; padding: 0; flex: none; transition: background .15s, color .15s; }
-.ibtn:hover { background: var(--track); color: var(--ink); }
-.ibtn[aria-pressed="true"] { background: var(--track); color: var(--ink); }
-.ibtn.primary { width: 52px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: var(--accent-ink); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25), 0 8px 20px -8px var(--accent); }
-.ibtn.primary:hover { filter: brightness(1.08); }
 .ibtn.hintbtn[aria-pressed="true"] { background: var(--hint-soft); color: var(--hint); }
-/* icon + word buttons */
-.ibtn.tb { width: auto; display: inline-flex; align-items: center; gap: 8px; padding: 0 14px 0 11px; font-size: .86rem; font-weight: 600; }
-.ibtn.primary.tb { padding: 0 18px 0 14px; min-width: 104px; }
 /* always findable at the bottom-right of the answer panel; lights up once the puzzle is solved */
 .ibtn.next { padding: 0 11px 0 16px; background: var(--track); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line-strong); }
 .ibtn.next:hover { background: var(--chip); }
@@ -81,30 +19,8 @@ button { cursor: pointer; }
 .ibtn.next.ready .n { color: inherit; opacity: .7; }
 .ibtn.next.ready:hover { filter: brightness(1.08); }
 
-/* text hierarchy: eyebrow (faint caps) > title (display) > label (muted) > meta (faint) */
-.eyebrow { font-size: .66rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; color: var(--faint); line-height: 1.3; }
-.ptitle { font-family: var(--f-display); font-size: 1.08rem; font-weight: 700; letter-spacing: -.005em; line-height: 1.25; margin: 2px 0 0; }
-.lbl { font-size: .78rem; font-weight: 600; color: var(--faint); white-space: nowrap; }
-.meta { display: flex; align-items: center; gap: 6px; font-size: .76rem; color: var(--faint); white-space: nowrap; }
-kbd { font-family: var(--f-mono); font-size: .68rem; padding: 1px 6px; border-radius: 5px; background: var(--sunken); border: 1px solid var(--line); border-bottom-width: 2px; color: var(--muted); }
-.vsep { width: 1px; height: 24px; background: var(--line-strong); margin: 0 4px; }
-
 /* panel header: step + title on the left, live status on the right */
 .phead { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; min-height: 37px; }
-.pill { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px 0 9px; border-radius: 999px; font-size: .8rem; font-weight: 600; background: var(--sunken); color: var(--muted); white-space: nowrap; transition: background .2s, color .2s; }
-.pill.ok { background: color-mix(in srgb, var(--ok) 15%, transparent); color: var(--ok); }
-.pill.bad { background: color-mix(in srgb, var(--bad) 13%, transparent); color: var(--bad); }
-.pill .i { width: 16px; height: 16px; stroke-width: 2.4; }
-
-/* recessed track; the chosen item rises out of it */
-.seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 12px; background: var(--track); flex: none; }
-.seg button { border: 0; background: transparent; color: var(--muted); width: 38px; height: 34px; display: grid; place-items: center; padding: 0; border-radius: 9px; transition: background .15s, color .15s; }
-.seg button:hover { color: var(--ink); }
-.seg button[aria-pressed="true"] { background: var(--chip); color: var(--ink); box-shadow: var(--shadow-sm); }
-
-.seg button.t { width: auto; padding: 0 12px; font-size: .8rem; font-weight: 600; font-variant-numeric: tabular-nums; display: inline-flex; gap: 6px; align-items: center; }
-.seg button.t .i { width: 18px; height: 18px; }
-
 /* header: title | problem stepper + tools */
 .top { display: flex; justify-content: space-between; align-items: center; gap: 12px 20px; }
 .top .title { display: flex; align-items: baseline; gap: 12px; min-width: 0; }
@@ -115,7 +31,6 @@ kbd { font-family: var(--f-mono); font-size: .68rem; padding: 1px 6px; border-ra
 
 /* main grid: two panels and a transport bar */
 .main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px var(--cg); grid-template-areas: "q a" "bar bar"; }
-.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; box-shadow: inset 0 1px 0 var(--edge), var(--shadow); padding: var(--pp); display: flex; flex-direction: column; min-width: 0; }
 .panel.q { grid-area: q; }
 .panel.a { grid-area: a; }
 .bar { grid-area: bar; }
@@ -123,37 +38,10 @@ kbd { font-family: var(--f-mono); font-size: .68rem; padding: 1px 6px; border-ra
 .stage, .opts { margin-bottom: 14px; }
 
 .stage, .opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.cell { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.cell .cap { display: flex; justify-content: space-between; align-items: center; color: var(--faint); height: 22px; }
-.cell .cap b { font-family: var(--f-display); font-size: .9rem; font-weight: 700; color: var(--muted); }
-.cell .cap .w { font-size: .74rem; font-weight: 500; color: var(--faint); margin-left: 6px; }
-.cell .cap > span:first-child { display: flex; align-items: baseline; min-width: 0; white-space: nowrap; overflow: hidden; }
-.cell .cap .i { width: 16px; height: 16px; }
 
-/* question wells: recessed and borderless so the shapes carry the weight */
-.cell svg.box { width: 100%; height: auto; aspect-ratio: 1; display: block; background: var(--sunken); border-radius: 12px; }
-.cell.target svg.box { box-shadow: inset 0 0 0 1.5px var(--accent); }
-.cell.target .cap b, .cell.target .cap .i { color: var(--accent); }
-.cell.answer svg.box { background: transparent; outline: 1.5px dashed var(--line-strong); outline-offset: -1.5px; }
-.cell.answer.solved svg.box { outline: 0; background: var(--sunken); box-shadow: inset 0 0 0 2px var(--ok); }
-.cell.answer.solved .cap b { color: var(--ok); }
-.cell.good .cap b, .cell.good .cap .i, .cell.good .mk { color: var(--ok); }
-.cell.bad .cap b, .cell.bad .cap .i, .cell.bad .mk { color: var(--bad); }
-.ink { stroke: var(--ink); }
-.ghost path { fill: none; stroke: var(--faint); stroke-dasharray: 3 3; }
-.qmark { fill: var(--line-strong); font-family: var(--f-display); font-size: 44px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
 
-/* answer options: each button shows its own crop of the problem sheet */
-.opt { position: relative; overflow: hidden; width: 100%; aspect-ratio: 1; display: block; padding: 0; border: 1px solid var(--line); border-radius: 12px; background: transparent; transition: box-shadow .15s, transform .15s, opacity .15s; }
-.opt::before { content: ""; position: absolute; inset: 0; background-color: #fff; background-image: var(--img); background-size: 494.56% auto; background-repeat: no-repeat; background-position: inherit; }
-.opt:hover { transform: translateY(-2px); box-shadow: 0 0 0 2px var(--accent), 0 10px 20px -12px var(--accent); }
-.opt.bad { box-shadow: 0 0 0 2px var(--bad); opacity: .4; }
-.opt.good { box-shadow: 0 0 0 2.5px var(--ok), 0 12px 24px -14px var(--ok); }
-.opts.done .opt { pointer-events: none; }
-.opts.done .opt:not(.good) { opacity: .3; }
 
 /* footers */
-input[type=range] { width: 100%; margin: 0; accent-color: var(--accent); display: block; }
 .timeline { display: flex; align-items: center; gap: 12px; }
 .timeline b { font-family: var(--f-display); font-size: .9rem; color: var(--faint); }
 .timeline b:last-child { color: var(--accent); }
@@ -179,8 +67,6 @@ input[type=range] { width: 100%; margin: 0; accent-color: var(--accent); display
 .static .side { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
 
 /* spec dialog: a visual puzzle builder laid out like A : B :: C : D, with the rule in the middle */
-dialog { width: min(820px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); border: 1px solid var(--line); border-radius: 18px; background: var(--panel); color: var(--ink); padding: 20px 22px; box-shadow: inset 0 1px 0 var(--edge), 0 30px 80px -20px rgba(0, 0, 0, .7); }
-dialog::backdrop { background: rgba(6, 6, 10, .65); backdrop-filter: blur(4px); }
 .spec { display: flex; flex-direction: column; gap: 12px; }
 .dhead { padding-bottom: 12px; border-bottom: 1px solid var(--line); }
 .dsub { margin: 0; font-size: .86rem; color: var(--muted); }
@@ -230,13 +116,11 @@ button.slot:hover { border-color: var(--accent); }
 .tiles.rows .tile { flex-direction: row; justify-content: flex-start; gap: 10px; height: 42px; padding: 0 12px; }
 .tiles.rows .tile .i { width: 20px; height: 20px; }
 .tiles.swatches { grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); }
-.sw { width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .15); }
 
 .raw { display: flex; flex-direction: column; gap: 8px; }
 .raw .meta { font-family: var(--f-mono); font-size: .7rem; white-space: normal; }
 .spec textarea { width: 100%; font-family: var(--f-mono); font-size: .82rem; background: var(--sunken); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; resize: vertical; min-height: 60px; display: block; }
 .spec textarea.invalid { border-color: var(--bad); }
-.err { color: var(--bad); font-size: .85rem; display: flex; align-items: center; gap: 6px; }
 .dfoot { padding-top: 14px; border-top: 1px solid var(--line); }
 .dfoot .ibtn:disabled { opacity: .4; cursor: default; background: transparent; }
 .ibtn[aria-expanded="true"] { background: var(--track); color: var(--ink); }
@@ -248,7 +132,6 @@ button.slot:hover { border-color: var(--accent); }
   .rule .steplbl { text-align: center; }
   .dfoot .meta { display: none; }
 }
-[hidden] { display: none !important; }
 
 /* words step back before anything wraps: secondary labels first, then button words */
 .app { container: app / inline-size; }
@@ -256,13 +139,12 @@ button.slot:hover { border-color: var(--accent); }
 @container app (max-width: 980px) { .formula { display: none; } }
 @container app (max-width: 760px) { .bar .lbl, .bar .vsep, .top .tools span.t { display: none; } h1 { font-size: 1.15rem; } }
 @container app (max-width: 640px) { h1 .t1 { display: none; } }
-@container app (max-width: 560px) { h1 { font-size: 1rem; } .stepper select { padding: 0 6px; font-size: .78rem; } }
+@container app (max-width: 560px) { h1 { font-size: 1rem; } .stepper select { padding: 0 6px; font-size: .78rem; } .top { flex-wrap: wrap; } .top .tools { gap: 6px 4px; width: 100%; min-width: 0; flex-wrap: wrap; justify-content: space-between; } .sets button.t { padding: 0 9px; } }
 @container (max-width: 400px) { .meta, .rchip .t, .ibtn.next .n { display: none; } }
 @container (max-width: 560px) {
   .status:has(.rules:not([hidden])) .ibtn.next .n, .status:has(.rules:not([hidden])) #hintTxt { display: none; }
   .status:has(.rules:not([hidden])) .hintbtn { width: 40px; padding: 0; justify-content: center; }
 }
-.cap .mk { display: flex; align-items: center; gap: 4px; font-size: .74rem; font-weight: 600; }
 @container (max-width: 300px) { .cell .cap .w { display: none; } }
 
 /* phones: single column, four boxes per row; width capped so both panels still fit the height */

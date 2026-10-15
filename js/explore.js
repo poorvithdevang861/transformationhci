@@ -1,111 +1,17 @@
-/* Relies on SETS from problems.js, loaded first. */
+/* Free-play explorer. Relies on icons.js, engine.js (TA) and problems.js (SETS), loaded first. */
 (function () {
-  /* ---------- shapes (unit size, centred on 0,0) ---------- */
-  function poly(pts) { return "M" + pts.map(function (p) { return p[0].toFixed(3) + " " + p[1].toFixed(3); }).join("L") + "Z"; }
-  function reg(n) { var a = []; for (var i = 0; i < n; i++) { var t = -Math.PI / 2 + i * 2 * Math.PI / n; a.push([Math.cos(t), Math.sin(t)]); } return poly(a); }
-  function star() { var a = []; for (var i = 0; i < 10; i++) { var r = i % 2 ? 0.45 : 1.1, t = -Math.PI / 2 + i * Math.PI / 5; a.push([r * Math.cos(t), r * Math.sin(t)]); } return poly(a); }
-  var SHAPES = {
-    circle: "M1 0A1 1 0 1 1 -1 0A1 1 0 1 1 1 0Z",
-    ellipse: "M1.3 0A1.3 .65 0 1 1 -1.3 0A1.3 .65 0 1 1 1.3 0Z",
-    diamond: "M0 -1.25L.7 0L0 1.25L-.7 0Z",
-    heart: "M0 .95C-1.3 -.05 -.85 -1 0 -.35C.85 -1 1.3 -.05 0 .95Z",
-    star: star(),
-    triangle: "M0 -1L1.05 .8L-1.05 .8Z",
-    rectangle: "M-1.25 -.65H1.25V.65H-1.25Z",
-    pentagon: reg(5),
-    hexagon: reg(6),
-    plus: "M-.33 -1H.33V-.33H1V.33H.33V1H-.33V.33H-1V-.33H-.33Z",
-    arrow: "M-1.1 -.3H.2V-.8L1.1 0L.2 .8V.3H-1.1Z"
-  };
-  var COLORS = { yellow: "#f2c200", blue: "#2f6fe0", green: "#2e9e5b", red: "#d84a3a", orange: "#f08a1c", purple: "#8a52c9", pink: "#e0609a", black: "#222222" };
-
-  /* ---------- operations ---------- */
-  var OPS = {
-    rotate_counterclockwise: { name: "Rotate counterclockwise" },
-    rotate_clockwise: { name: "Rotate clockwise" },
-    reflect: { name: "Reflect" },
-    scale_up: { name: "Scale up" },
-    scale_down: { name: "Scale down" },
-    shear_horizontal: { name: "Shear horizontal" },
-    shear_vertical: { name: "Shear vertical" },
-    none: { name: "No change" }
-  };
-  function parseOp(s) {
-    s = s.trim();
-    var m = s.match(/^fill\((\w+)\)$/);
-    if (m) {
-      if (m[1] === "empty") return { type: "none" };
-      if (!COLORS[m[1]]) throw new Error("Unknown colour: " + m[1]);
-      return { type: "fill", color: m[1] };
-    }
-    if (!OPS[s] || s === "none") throw new Error("Unknown move: " + s);
-    return { type: s };
-  }
-  function opName(o) { return o.type === "fill" ? "Fill " + o.color : OPS[o.type].name; }
-  var SHORT = { rotate_counterclockwise: "Turn left", rotate_clockwise: "Turn right", reflect: "Flip", scale_up: "Grow", scale_down: "Shrink", shear_horizontal: "Slant sideways", shear_vertical: "Slant up", none: "No change" };
-  function opShort(o) { return o.type === "fill" ? "Fill " + o.color : SHORT[o.type]; }
-
-  /* steps[k] = [left op, right op] for transform(k+1); steps run one after another */
-  function parseSpec(line) {
-    var m = line.match(/A=\((\w+),\s*(\w+)\).*?C=\((\w+),\s*(\w+)\)(.*)$/);
-    if (!m) throw new Error("Expected: Problem N: A=(shape,shape), C=(shape,shape), transform1=(move,move)");
-    var steps = [], re = /transform(\d)=\(((?:[^()]|\([^()]*\))*)\)/g, t;
-    while ((t = re.exec(m[5]))) {
-      if (+t[1] !== steps.length + 1) throw new Error("Expected transform" + (steps.length + 1) + " next.");
-      var parts = t[2].split(/,(?![^(]*\))/);
-      if (parts.length !== 2) throw new Error("transform" + t[1] + " needs exactly two moves, one per shape.");
-      steps.push([parseOp(parts[0]), parseOp(parts[1])]);
-    }
-    if (!steps.length) throw new Error("Add transform1=(move,move).");
-    [m[1], m[2], m[3], m[4]].forEach(function (s) { if (!SHAPES[s]) throw new Error("Unknown shape: " + s); });
-    return { A: [m[1], m[2]], C: [m[3], m[4]], steps: steps };
-  }
-  function shapeOps(sp, s) { return sp.steps.map(function (st) { return st[s]; }); }
-
-  /* params at progress g (0..1) for one op */
-  function params(op, g) {
-    var p = { rot: 0, sx: 1, sy: 1, kx: 0, ky: 0, ry: 0, f: 0, color: null };
-    switch (op.type) {
-      case "rotate_counterclockwise": p.rot = -90 * g; break;
-      case "rotate_clockwise": p.rot = 90 * g; break;
-      case "reflect": p.sy = Math.cos(Math.PI * g); p.ry = (1 - Math.cos(Math.PI * g)) / 2; break;
-      case "scale_up": p.sx = p.sy = 1 + 0.5 * g; break;
-      case "scale_down": p.sx = p.sy = 1 - 0.35 * g; break;
-      case "shear_horizontal": p.kx = 0.7 * g; break;
-      case "shear_vertical": p.ky = 0.7 * g; break;
-      case "fill": p.f = g; p.color = COLORS[op.color]; break;
-    }
-    return p;
-  }
-  /* several ops on one shape: op k plays during the k-th slice of g */
-  function paramsAt(ops, g) {
-    var n = ops.length, p = params({ type: "none" }, 0);
-    ops.forEach(function (op, k) {
-      var q = params(op, Math.min(1, Math.max(0, g * n - k)));
-      p.rot += q.rot; p.sx *= q.sx; p.sy *= q.sy; p.kx += q.kx; p.ky += q.ky; p.ry = Math.max(p.ry, q.ry);
-      if (q.color) { p.color = q.color; p.f = q.f; }
-    });
-    return p;
-  }
+  var SHAPES = TA.SHAPES, COLORS = TA.COLORS, parseOp = TA.parseOp, opName = TA.opName, opShort = TA.opShort, opKey = TA.opKey;
+  var parseSpec = TA.parseSpec, shapeOps = TA.shapeOps, params = TA.params, paramsAt = TA.paramsAt;
+  var NS = TA.NS, el = TA.el, ease = TA.ease, icon = TA.icon, shapeSvg = TA.shapeSvg, opIcon = TA.opIcon, cap1 = TA.cap1, resultSvg = TA.resultSvg, NONE = TA.NONE;
+  var R = TA.R, SLOT = TA.SLOT;
 
   /* ---------- DOM ---------- */
-  var NS = "http://www.w3.org/2000/svg";
   var $ = function (id) { return document.getElementById(id); };
-  var R = 11, SLOT = [[27, 70], [73, 70]];
   var stage = $("stage"), inst = [], qmark, dCell, spec, setIdx = 0, specIdx = 0, custom = false;
   function SET() { return SETS[setIdx]; }
   var x = 0, playing = false, raf = 0, phase = "fwd", holdUntil = 0, last = 0, focus = "both";
   var loopOn = true, spd = 1;
   var solved = false, tries = 0, dG = 0;
-
-  function el(tag, attrs, parent) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
-  var ease = function (t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
-  function icon(id, cls) { return '<svg class="i' + (cls ? " " + cls : "") + '" aria-hidden="true"><use href="#' + id + '"/></svg>'; }
-  function shapeSvg(name) { return '<svg class="shape" viewBox="-1.4 -1.4 2.8 2.8" aria-hidden="true"><path d="' + SHAPES[name] + '"/></svg>'; }
-  function opIcon(o) {
-    if (o.type === "fill") return '<svg class="i" aria-hidden="true" style="color:' + COLORS[o.color] + '"><use href="#m-fill" fill="currentColor"/></svg>';
-    return icon("m-" + o.type);
-  }
 
   function build() {
     stage.innerHTML = ""; inst = [];
@@ -244,14 +150,12 @@
     $("answer").textContent = text;
   }
 
-  /* option boxes in the 727x723 sheet: top-left x, shared top y, box size */
-  var OPT_X = [17, 199, 381, 563], OPT_Y = 378, OPT_S = 147, SHEET_W = 727, SHEET_H = 723;
   function buildOptions() {
     var o = $("opts"); o.innerHTML = ""; o.className = "opts";
-    OPT_X.forEach(function (px, n) {
+    [0, 1, 2, 3].forEach(function (n) {
       var cell = document.createElement("div"); cell.className = "cell";
       var b = document.createElement("button"); b.className = "opt"; b.setAttribute("aria-label", "Option " + (n + 1));
-      b.style.backgroundPosition = (px / (SHEET_W - OPT_S) * 100) + "% " + (OPT_Y / (SHEET_H - OPT_S) * 100) + "%";
+      b.style.backgroundPosition = TA.optionCropPosition(n);
       var cap = document.createElement("div"); cap.className = "cap";
       cap.innerHTML = "<span><b>" + (n + 1) + '</b></span><span class="mk"></span>';
       b.onclick = function () { choose(n + 1, b, cell); };
@@ -307,7 +211,7 @@
     var S = SET(), img = S.dir + "problem_" + (idx + 1) + ".png";
     $("spec").value = S.specs[idx]; setErr("");
     spec = parseSpec(S.specs[idx]);
-    $("opts").style.setProperty("--img", 'url("' + new URL(img, document.baseURI).href + '")');
+    $("opts").style.setProperty("--img", TA.sheetUrl(S, idx));
     $("staticImg").src = img;
     $("opts").style.visibility = ""; setReveal(false);
     if (setChanged) {
@@ -347,19 +251,12 @@
   var active = "a0";
   var SLOT_NAME = { a0: "A · left shape", a1: "A · right shape", o0: "step 1 · left shape", o1: "step 1 · right shape", p0: "step 2 · left shape", p1: "step 2 · right shape", c0: "C · left shape", c1: "C · right shape" };
   var MOVES = ["rotate_counterclockwise", "rotate_clockwise", "reflect", "scale_up", "scale_down", "shear_horizontal", "shear_vertical", "fill(empty)"];
-  var NONE = { type: "none" };
-  function opKey(o) { return o.type === "fill" ? "fill(" + o.color + ")" : o.type === "none" ? "fill(empty)" : o.type; }
   function stepOps(k) { var st = spec.steps[k[0] === "o" ? 0 : 1]; return st || [NONE, NONE]; }
   function specLine(s) {
     var steps = s.steps.filter(function (st, k) { return k === 0 || st[0].type !== "none" || st[1].type !== "none"; });
     return "Problem " + (specIdx + 1) + ": A=(" + s.A.join(",") + "), C=(" + s.C.join(",") + ")" + steps.map(function (st, k) {
       return ", transform" + (k + 1) + "=(" + opKey(st[0]) + "," + opKey(st[1]) + ")";
     }).join("");
-  }
-  function cap1(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
-  function resultSvg(name, ops) {
-    var p = paramsAt(ops, 1);
-    return '<svg class="shape" viewBox="-1.6 -1.6 3.2 3.2" aria-hidden="true"><path transform="rotate(' + p.rot + ") matrix(1 " + p.ky + " " + p.kx + " 1 0 0) scale(" + p.sx + " " + p.sy + ')" d="' + SHAPES[name] + '"' + (p.color ? ' style="fill:' + p.color + '"' : "") + "/></svg>";
   }
   function slotHtml(k) {
     var row = k[0], s = +k[1], body, label, isOp = row === "o" || row === "p";

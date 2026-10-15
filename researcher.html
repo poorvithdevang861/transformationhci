@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Researcher · Transformation Animator</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<meta name="theme-color" content="#0a0a0f">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/researcher.css">
+</head>
+<body>
+<script src="js/icons.js"></script>
+
+<div class="rshell">
+  <header class="edge">
+    <div class="l">
+      <a class="ibtn" href="index.html" aria-label="Back to the study"><svg class="i" aria-hidden="true"><use href="#i-home"/></svg></a>
+      <h1>Researcher <span class="grad">dashboard</span></h1>
+    </div>
+    <div class="r">
+      <button class="ibtn tb" id="exTrials"><svg class="i" aria-hidden="true"><use href="#i-download"/></svg>Trials CSV</button>
+      <button class="ibtn tb" id="exSessions"><svg class="i" aria-hidden="true"><use href="#i-download"/></svg>Sessions CSV</button>
+      <button class="ibtn tb" id="exJson"><svg class="i" aria-hidden="true"><use href="#i-code"/></svg>All JSON</button>
+      <label class="ibtn tb" id="imLabel"><svg class="i" aria-hidden="true"><use href="#i-pencil"/></svg>Import JSON<input type="file" id="imFile" accept="application/json,.json" hidden></label>
+    </div>
+  </header>
+
+  <p class="note meta">{data-note}</p>
+
+  <section class="panel">
+    <div class="phead"><div><div class="eyebrow">Overview</div><h2 class="ptitle">Sessions on this device</h2></div></div>
+    <div class="kpis" id="kpis"></div>
+    <div class="lbl sub">Main puzzles by hint condition</div>
+    <div class="tscroll"><table id="condTable"></table></div>
+  </section>
+
+  <section class="panel">
+    <div class="phead edge">
+      <div><div class="eyebrow">Sessions</div><h2 class="ptitle">Participants</h2></div>
+      <button class="ibtn tb danger" id="clearAll"><svg class="i" aria-hidden="true"><use href="#i-trash"/></svg>Delete all</button>
+    </div>
+    <div class="tscroll"><table id="sessTable"></table></div>
+  </section>
+
+  <section class="panel">
+    <div class="phead"><div><div class="eyebrow">Settings</div><h2 class="ptitle">Study configuration</h2></div></div>
+    <p class="meta wrap">Applies to new sessions started on this device. Each session stores the settings it ran with.</p>
+    <div class="settings">
+      <div class="sfield">
+        <div class="lbl">Hint windows (seconds)</div>
+        <div class="tw" id="windows"></div>
+        <div class="meta wrap">Hints beyond T4 reuse the last window. The proposal suggests 15–30 s, tuned after a pilot.</div>
+      </div>
+      <div class="sfield">
+        <label class="lbl" for="animS">Animation pass at 1× (seconds)</label>
+        <input type="number" id="animS" min="0.6" max="5" step="0.1">
+      </div>
+      <div class="sfield">
+        <label class="chk"><input type="checkbox" id="fb"> Show correct / incorrect after each main puzzle</label>
+      </div>
+      <div class="sfield">
+        <div class="lbl" id="mainLbl"></div>
+        <div class="qpick" id="mainPick"></div>
+      </div>
+      <div class="sfield">
+        <div class="lbl" id="trLbl"></div>
+        <div class="qpick" id="trPick"></div>
+      </div>
+    </div>
+    <div class="edge">
+      <div class="l meta" id="cfgState"></div>
+      <div class="r">
+        <button class="ibtn tb" id="cfgReset"><svg class="i" aria-hidden="true"><use href="#i-restart"/></svg>Defaults</button>
+        <button class="ibtn tb primary" id="cfgSave"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>Save settings</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script src="js/engine.js"></script>
+<script src="js/problems.js"></script>
+<script src="js/study/config.js"></script>
+<script src="js/study/store.js"></script>
+<script src="js/study/measures.js"></script>
+<script src="js/researcher.js"></script>
+</body>
+</html>

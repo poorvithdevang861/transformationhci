@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Explorer · Transformation Animator</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<meta name="theme-color" content="#0a0a0f">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/explore.css">
+</head>
+<body>
+
+<script src="js/icons.js"></script>
+
+<div class="app">
+  <header class="top">
+    <div class="title">
+      <h1 aria-label="Transformation Animator"><span class="t1">Transformation </span><span class="grad">Animator</span></h1>
+      <span class="formula">A : B :: C : ?</span>
+    </div>
+    <div class="tools">
+      <div class="seg sets" role="group" aria-label="Problem set">
+        <button id="set0" class="t" aria-pressed="true" aria-label="Set 1"><span class="t">Set </span>1</button>
+        <button id="set1" class="t" aria-pressed="false" aria-label="Set 2"><span class="t">Set </span>2</button>
+      </div>
+      <div class="seg stepper" role="group" aria-label="Problem">
+        <button id="prevP" aria-label="Previous problem"><svg class="i"><use href="#i-prev"/></svg></button>
+        <select id="pick" aria-label="Choose problem"></select>
+        <button id="nextP" aria-label="Next problem"><svg class="i"><use href="#i-s1"/></svg></button>
+      </div>
+      <div class="seg" role="group" aria-label="Representation">
+        <button id="m-anim" class="t" aria-pressed="true"><svg class="i"><use href="#i-anim"/></svg><span class="t">Animated</span></button>
+        <button id="m-static" class="t" aria-pressed="false"><svg class="i"><use href="#i-image"/></svg><span class="t">Static</span></button>
+      </div>
+      <a class="ibtn" href="index.html" aria-label="Back to the study home" title="Study home"><svg class="i"><use href="#i-home"/></svg></a>
+      <button id="specBtn" class="ibtn tb" aria-label="Edit problem spec"><svg class="i"><use href="#i-code"/></svg><span class="t">Spec</span></button>
+    </div>
+  </header>
+
+  <main id="animView" class="main">
+    <section class="panel q" aria-labelledby="qTitle">
+      <div class="phead">
+        <div>
+          <div class="eyebrow">Step 1 · Observe</div>
+          <h2 class="ptitle" id="qTitle">Watch A turn into B</h2>
+        </div>
+        <div class="meta"><kbd>Space</kbd> play / pause</div>
+      </div>
+      <div class="stage" id="stage"></div>
+      <div class="pfoot timeline">
+        <b aria-hidden="true">A</b>
+        <input type="range" id="scrub" min="0" max="1" step="0.002" value="0" aria-label="Drag to move A toward B">
+        <b aria-hidden="true">B</b>
+      </div>
+    </section>
+
+    <section class="panel a" aria-labelledby="aTitle">
+      <div class="phead">
+        <div>
+          <div class="eyebrow">Step 2 · Apply to C</div>
+          <h2 class="ptitle" id="aTitle">Which one is D?</h2>
+        </div>
+        <div class="pill" id="pill" role="status"><svg class="i"><use id="pillIcon" href="#i-pointer"/></svg><span id="answer">Pick one</span></div>
+      </div>
+      <div class="opts" id="opts" role="group" aria-label="Answer options"></div>
+      <div class="pfoot edge status">
+        <div class="l">
+          <button id="hintBtn" class="ibtn tb hintbtn" aria-pressed="false"><svg class="i"><use href="#i-bulb"/></svg><span id="hintTxt">Hint</span></button>
+          <div class="rules" id="rules" hidden></div>
+        </div>
+        <div class="r">
+          <button id="nextBtn" class="ibtn tb next" aria-label="Next problem"><span class="t">Next</span><span class="n" id="nextN"></span><svg class="i"><use href="#i-arrow"/></svg></button>
+        </div>
+      </div>
+    </section>
+
+    <div class="bar edge">
+      <div class="l">
+        <button id="play" class="ibtn tb primary"><svg class="i"><use id="playIcon" href="#i-play"/></svg><span id="playTxt">Play</span></button>
+        <button id="replay" class="ibtn" aria-label="Restart"><svg class="i"><use href="#i-restart"/></svg></button>
+        <span class="vsep" aria-hidden="true"></span>
+        <span class="lbl" aria-hidden="true">Animate</span>
+        <div class="seg" role="group" aria-label="Which shape to animate">
+          <button id="f-both" aria-pressed="true" aria-label="Both shapes"><svg class="i"><use href="#i-both"/></svg></button>
+          <button id="f-left" aria-pressed="false" aria-label="Left shape only"><svg class="i"><use href="#i-left"/></svg></button>
+          <button id="f-right" aria-pressed="false" aria-label="Right shape only"><svg class="i"><use href="#i-right"/></svg></button>
+        </div>
+      </div>
+      <div class="r">
+        <span class="lbl" aria-hidden="true">Speed</span>
+        <div class="seg" role="group" aria-label="Speed" id="speed">
+          <button class="t" data-v="0.5" aria-pressed="false" aria-label="Slow, half speed">0.5×</button>
+          <button class="t" data-v="1" aria-pressed="true" aria-label="Normal speed">1×</button>
+          <button class="t" data-v="1.6" aria-pressed="false" aria-label="Fast">1.6×</button>
+        </div>
+        <button id="loop" class="ibtn tb" aria-pressed="true"><svg class="i"><use href="#i-loop"/></svg>Loop</button>
+      </div>
+    </div>
+  </main>
+
+  <section id="staticView" class="panel static" hidden>
+    <img id="staticImg" alt="Static version of the visual reasoning question" src="img/set1/problem_1.png">
+    <div class="side">
+      <div class="eyebrow">Original sheet</div>
+      <button class="ibtn tb" id="revealBtn" aria-pressed="false"><svg class="i"><use id="revealIcon" href="#i-eye"/></svg><span id="revealTxt">Reveal answer</span></button>
+      <div class="result" role="status">
+        <span class="badge ok" id="staticBadge" hidden><svg class="i"><use href="#i-check"/></svg></span>
+        <span class="big ok" id="staticAnswer"></span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<dialog id="specDlg" aria-labelledby="specTitle">
+  <div class="spec">
+    <div class="edge dhead">
+      <div class="l">
+        <div>
+          <div class="eyebrow">Custom puzzle</div>
+          <h2 class="ptitle" id="specTitle">Build your own question</h2>
+        </div>
+      </div>
+      <div class="r">
+        <button class="ibtn" id="specClose" aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button>
+      </div>
+    </div>
+    <p class="dsub"><b>1</b> Click any box below. <b>2</b> Pick a shape or move from the palette. The rule turns A into B, and C into D.</p>
+
+    <div class="builder" role="group" aria-label="Puzzle">
+      <div class="bcol" style="grid-area:a">
+        <div class="bcap"><b>A</b>Start</div>
+        <div class="bpair" id="bA"></div>
+      </div>
+      <div class="bcol rule" style="grid-area:r">
+        <div class="bcap"><svg class="i sm" aria-hidden="true"><use href="#i-moves"/></svg>Rule</div>
+        <div class="steplbl">1st</div>
+        <div class="bpair" id="bR"></div>
+        <div class="steplbl">Then</div>
+        <div class="bpair" id="bR2"></div>
+        <div class="flow"><svg class="i sm" aria-hidden="true"><use href="#i-arrow"/></svg><span>Same rule for both rows</span></div>
+      </div>
+      <div class="bcol target" style="grid-area:b">
+        <div class="bcap"><b>B</b>After the rule<span class="auto">auto</span></div>
+        <div class="bpair" id="bB"></div>
+      </div>
+      <div class="bcol" style="grid-area:c">
+        <div class="bcap"><b>C</b>Your turn</div>
+        <div class="bpair" id="bC"></div>
+      </div>
+      <div class="bcol answer" style="grid-area:d">
+        <div class="bcap"><b>D</b>Answer<span class="auto">auto</span></div>
+        <div class="bpair" id="bD"></div>
+      </div>
+    </div>
+
+    <div class="pal">
+      <div class="palhead" id="palHead"></div>
+      <div id="palette"></div>
+    </div>
+
+    <div class="raw" id="rawWrap" hidden>
+      <textarea id="spec" rows="2" spellcheck="false" aria-label="Problem spec line"></textarea>
+      <div class="edge">
+        <div class="l meta">Problem N: A=(shape,shape), C=(shape,shape), transform1=(move,move)</div>
+        <div class="err" id="errWrap" role="alert" hidden><svg class="i sm" aria-hidden="true"><use href="#i-warn"/></svg><span id="err"></span></div>
+      </div>
+    </div>
+
+    <div class="edge dfoot">
+      <div class="l">
+        <button class="ibtn tb" id="specReset"><svg class="i"><use href="#i-moves"/></svg><span id="resetTxt">Reset</span></button>
+        <button class="ibtn tb" id="rawToggle" aria-expanded="false" aria-controls="rawWrap"><svg class="i"><use href="#i-code"/></svg>Edit as text</button>
+      </div>
+      <div class="r">
+        <span class="meta" id="specState"></span>
+        <button class="ibtn tb primary" id="specDone"><svg class="i"><use href="#i-check"/></svg>Done</button>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<script src="js/engine.js"></script>
+<script src="js/problems.js"></script>
+<script src="js/explore.js"></script>
+</body>
+</html>
+
