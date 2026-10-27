@@ -116,3 +116,87 @@ dialog::backdrop { background: rgba(6, 6, 10, .65); backdrop-filter: blur(4px); 
 .err { color: var(--bad); font-size: .85rem; display: flex; align-items: center; gap: 6px; }
 [hidden] { display: none !important; }
 .cap .mk { display: flex; align-items: center; gap: 4px; font-size: .74rem; font-weight: 600; }
+
+/* ==========================================================================
+   Mapped Eye-Gaze Boundaries (Matching User Attachment Specifications)
+   - Figure A : Red (#ff4055)
+   - Figure B : Blue (#3b82f6)
+   - Figure C : Orange (#ff9800)
+   - Choose D : Yellow (#facc15)
+   - Option 4 / Candidate : Purple (#a855f7)
+   - Hints Panel : Green (#22c55e)
+   ========================================================================== */
+.show-mapped-boundaries [data-aoi="fig-A"],
+.show-mapped-boundaries .fig:nth-child(1),
+.boundary-fig-a {
+  outline: 2.5px solid #ff4055 !important;
+  outline-offset: 3px !important;
+  border-radius: 14px !important;
+  box-shadow: 0 0 14px rgba(255, 64, 85, 0.45) !important;
+  position: relative;
+}
+
+.show-mapped-boundaries [data-aoi="fig-B"],
+.show-mapped-boundaries .fig:nth-child(2),
+.boundary-fig-b {
+  outline: 2.5px solid #3b82f6 !important;
+  outline-offset: 3px !important;
+  border-radius: 14px !important;
+  box-shadow: 0 0 14px rgba(59, 130, 246, 0.45) !important;
+  position: relative;
+}
+
+.show-mapped-boundaries [data-aoi="fig-C"],
+.show-mapped-boundaries .fig:nth-child(3),
+.boundary-fig-c {
+  outline: 2.5px solid #ff9800 !important;
+  outline-offset: 3px !important;
+  border-radius: 14px !important;
+  box-shadow: 0 0 14px rgba(255, 152, 0, 0.45) !important;
+  position: relative;
+}
+
+.show-mapped-boundaries [data-aoi="choose-d"],
+.show-mapped-boundaries .choose,
+.boundary-choose-d {
+  outline: 2.5px solid #facc15 !important;
+  outline-offset: 4px !important;
+  border-radius: 18px !important;
+  box-shadow: 0 0 16px rgba(250, 204, 21, 0.4) !important;
+  position: relative;
+}
+
+.show-mapped-boundaries .opts4 .cell:nth-child(4),
+.show-mapped-boundaries [data-aoi="option-4"],
+.boundary-option-4 {
+  outline: 2.5px solid #a855f7 !important;
+  outline-offset: 3px !important;
+  border-radius: 14px !important;
+  box-shadow: 0 0 16px rgba(168, 85, 247, 0.5) !important;
+  position: relative;
+}
+
+.show-mapped-boundaries [data-aoi="hint-panel"],
+.show-mapped-boundaries .hpanel,
+.boundary-hint-panel {
+  outline: 3px solid #22c55e !important;
+  outline-offset: 4px !important;
+  border-radius: 20px !important;
+  box-shadow: 0 0 18px rgba(34, 197, 94, 0.4) !important;
+  position: relative;
+}
+
+/* Color swatch pills for AOI breakdown */
+.aoi-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.aoi-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: none;
+}

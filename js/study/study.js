@@ -11,7 +11,7 @@
 
   var S = null, mode = "animation", device = detectDevice();
   var trial = null, player = null, picked = null, tStart = 0, step = 0;
-  var MAIN = STUDY.mainQuestions.length, TRANSFER = STUDY.transferQuestions.length, TOTAL = MAIN + TRANSFER + 4;
+  var MAIN = STUDY.mainQuestions.length, TOTAL = MAIN + 4;
 
   /* ---------- helpers ---------- */
   function detectDevice() {
@@ -62,12 +62,32 @@
       $("condChip").innerHTML = TA.icon(cond === "animated" ? "i-anim" : "i-text", "sm") + (cond === "animated" ? "Animated hints" : "Text hints");
     }
   }
-  function save() { Store.save(S); }
+  function save() {
+    Store.save(S);
+    trySaveToServer(S);
+  }
+
+  function trySaveToServer(session) {
+    if (!session) return;
+    try {
+      fetch("/api/save-results", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: session.id,
+          createdAt: session.createdAt,
+          completedAt: session.completedAt,
+          txt: Store.formatSessionResultsTxt(session),
+          session: session
+        })
+      }).catch(function () {});
+    } catch (e) {}
+  }
 
   /* ---------- 1 · welcome & consent ---------- */
   $("nMain").textContent = MAIN + (MAIN === 1 ? " puzzle" : " puzzles") + " with hints";
-  $("nTransfer").textContent = TRANSFER + (TRANSFER === 1 ? " new puzzle" : " new puzzles") + ", no hints";
-  $("stepTransfer").hidden = !TRANSFER;
+  if ($("nTransfer")) $("nTransfer").textContent = "";
+  if ($("stepTransfer")) $("stepTransfer").hidden = true;
   $("pid").value = newId();
 
   function paintDevice() {
@@ -160,7 +180,7 @@
   function figuresSvg(root, spec) {
     root.className = "figs svg";
     root.innerHTML = ["A", "B", "C", "D"].map(function (L) {
-      return '<div class="fig' + (L === "B" ? " target" : L === "D" ? " answer" : "") + '"><svg class="box" viewBox="0 0 100 100" role="img" aria-label="Figure ' + L + '"></svg><span class="flab">' + L + "</span></div>";
+      return '<div class="fig' + (L === "B" ? " target" : L === "D" ? " answer" : "") + '" data-aoi="fig-' + L + '"><svg class="box" viewBox="0 0 100 100" role="img" aria-label="Figure ' + L + '"></svg><span class="flab">' + L + "</span></div>";
     }).join("");
     var svgs = root.querySelectorAll("svg");
     [0, 1, 2].forEach(function (i) {
@@ -181,6 +201,7 @@
     root.style.setProperty("--img", TA.sheetUrl(set, idx));
     [0, 1, 2, 3].forEach(function (n) {
       var cell = document.createElement("div"); cell.className = "cell";
+      cell.setAttribute("data-aoi", "option-" + (n + 1));
       var b = document.createElement("button"); b.className = "opt"; b.type = "button";
       b.setAttribute("role", "radio"); b.setAttribute("aria-checked", "false"); b.setAttribute("aria-label", "Option " + (n + 1));
       b.style.backgroundPosition = TA.optionCropPosition(n);
@@ -256,6 +277,7 @@
       trial.gaze = gazeResult.samples;
       trial.fixations = gazeResult.fixations;
       trial.aoi = gazeResult.aoiMetrics;
+      trial.boundaries = gazeResult.boundaries;
     }
 
     var stats = player.finish();
@@ -269,113 +291,20 @@
     markOptions($("qopts"), picked, trial.answer, STUDY.feedback);
     $("confirmBtn").disabled = true;
 
-    // Advance directly to next puzzle without mental effort modal popup!
+    // Advance directly to next puzzle or questionnaire
     setTimeout(function () {
       if (trial.n < MAIN) {
         startTrial(trial.n);
-      } else if (TRANSFER) {
-        trial = null; step = MAIN; setProgress("Part 2", null); show("sTransferIntro");
       } else {
-        trial = null; effortScreen();
+        trial = null;
+        effortScreen();
       }
     }, STUDY.feedback ? 1200 : 250);
   };
 
-  /* ---------- 4 · transfer test: unseen questions, no hints ---------- */
-  var tr = null, tPicked = null, tPhase = "choose", tIds = [];
-  $("transferBtn").onclick = function () { startTransfer(0); };
-
-  function startTransfer(k) {
-    var set = SETS[STUDY.transferSet], idx = STUDY.transferQuestions[k], spec = TA.parseSpec(set.specs[idx]);
-    tr = { n: k + 1, set: STUDY.transferSet, idx: idx, orientation: orientation(), startedAt: new Date().toISOString(), answer: set.answers[idx], choice: null, correct: null, timeMs: null, identify: [], spec: set.specs[idx] };
-    S.transfer[k] = tr; save();
-    step = MAIN + k;
-    tPicked = null; tPhase = "choose"; tStart = performance.now();
-    $("tEyebrow").textContent = "New puzzle " + (k + 1) + " of " + TRANSFER + " · no hints";
-    $("tTitle").textContent = "Which figure completes A : B :: C : ?";
-    figuresImage($("tfigs"), set, idx);
-    $("topts").className = "opts4";
-    options($("topts"), set, idx, function (v) {
-      tPicked = v;
-      $("tPickState").innerHTML = TA.icon("i-pointer", "sm") + "Option " + v + " selected";
-      $("tConfirm").disabled = false;
-    });
-    $("tChoose").hidden = false; $("tIdentify").hidden = true;
-    $("tPickState").innerHTML = TA.icon("i-pointer", "sm") + "Tap an option";
-    $("tConfirm").innerHTML = TA.icon("i-check") + "Confirm answer";
-    $("tConfirm").disabled = true;
-    tIds = identifyPrompts(spec, set.specs[idx]);
-    setProgress("New puzzle " + (k + 1) + " of " + TRANSFER, null);
-    show("sTransfer");
-
-    if (S && S.eyeTracking && window.GazeTracker) {
-      GazeTracker.startRecording();
-    }
-  }
-
-  function identifyPrompts(spec, seed) {
-    var rnd = function () { return Math.random(); };
-    var moves = Object.keys(TA.OPS).filter(function (k) { return k !== "none"; });
-    return TA.hintsFor(spec).map(function (h) {
-      var truth = TA.opKey(h.op), pool;
-      if (h.op.type === "fill") pool = Object.keys(TA.COLORS).map(function (c) { return "fill(" + c + ")"; });
-      else pool = moves.slice();
-      pool = pool.filter(function (k) { return k !== truth; }).slice(0, 3);
-      var combined = pool.concat([truth]).sort(function () { return 0.5 - Math.random(); });
-      return { slot: h.slot, shape: h.shape, truth: truth, choices: combined, answer: null };
-    });
-  }
-
-  function paintIdentify() {
-    $("tIdentify").innerHTML = '<div class="lbl">What happened from A to B?</div>' + tIds.map(function (p, i) {
-      return '<div class="idq"><div class="idq-h">' + TA.shapeSvg(p.shape) + "<span><b>" + (p.slot === 0 ? "Left shape" : "Right shape") + "</b> (" + p.shape + ")</span></div>" +
-        '<div class="idq-opts" role="radiogroup" aria-label="' + (p.slot === 0 ? "Left" : "Right") + ' shape transformation">' + p.choices.map(function (c) {
-          var op = TA.parseOp(c);
-          return '<button type="button" role="radio" data-i="' + i + '" data-v="' + c + '" aria-checked="' + (p.answer === c) + '">' + TA.opIcon(op) + "<span>" + TA.opName(op) + "</span></button>";
-        }).join("") + "</div></div>";
-    }).join("");
-  }
-
-  $("tIdentify").addEventListener("click", function (e) {
-    var b = e.target.closest("button[data-i]"); if (!b) return;
-    tIds[+b.dataset.i].answer = b.dataset.v;
-    paintIdentify();
-    var left = tIds.filter(function (p) { return !p.answer; }).length;
-    $("tPickState").innerHTML = left ? TA.icon("i-pointer", "sm") + left + " left to answer" : TA.icon("i-check", "sm") + "All answered";
-    $("tConfirm").disabled = left > 0;
-  });
-
-  $("tConfirm").onclick = function () {
-    if (tPhase === "choose") {
-      if (S && S.eyeTracking && window.GazeTracker) {
-        var trGaze = GazeTracker.stopRecording();
-        tr.gaze = trGaze.samples;
-        tr.fixations = trGaze.fixations;
-        tr.aoi = trGaze.aoiMetrics;
-      }
-      tr.choice = tPicked; tr.correct = tPicked === tr.answer; tr.timeMs = Math.round(performance.now() - tStart);
-      save();
-      $("topts").classList.add("done");
-      if (tIds.length) {
-        tPhase = "identify";
-        $("tChoose").hidden = true; $("tIdentify").hidden = false;
-        $("tTitle").textContent = "Name the transformation";
-        paintIdentify();
-        $("tPickState").innerHTML = TA.icon("i-pointer", "sm") + tIds.length + " left to answer";
-        $("tConfirm").innerHTML = (tr.n < TRANSFER ? "Next puzzle" : "Continue") + TA.icon("i-arrow");
-        $("tConfirm").disabled = true;
-        return;
-      }
-    }
-    tr.identify = tIds.map(function (p) { return { slot: p.slot, shape: p.shape, truth: p.truth, answer: p.answer, choices: p.choices, correct: p.answer === p.truth }; });
-    tr.identifyMs = Math.round(performance.now() - tStart) - tr.timeMs;
-    save();
-    if (tr.n < TRANSFER) startTransfer(tr.n); else effortScreen();
-  };
-
-  /* ---------- 5.0 · Overall Mental Effort (moved from per-question to questionnaires) ---------- */
+  /* ---------- 4.1 · Overall Mental Effort ---------- */
   function effortScreen() {
-    step = MAIN + TRANSFER;
+    step = MAIN;
     $("overallEffortScale").innerHTML = "";
     $("overallEffortScale").appendChild(
       Measures.scale("Overall mental effort", 9, Measures.EFFORT.lo, Measures.EFFORT.hi, S.overallEffort, function (val) {
@@ -386,14 +315,14 @@
       })
     );
     $("effortNext").disabled = S.overallEffort == null;
-    setProgress("Questionnaire 1 of 4", null);
+    setProgress("Survey 1 of 4", null);
     show("sEffort");
   }
   $("effortNext").onclick = function () { tlx(); };
 
-  /* ---------- 5.1 · NASA-TLX Workload ---------- */
+  /* ---------- 4.2 · NASA-TLX Workload ---------- */
   function tlx() {
-    step = MAIN + TRANSFER + 1;
+    step = MAIN + 1;
     S.tlx = {};
     var list = $("tlxList"); list.innerHTML = "";
     Measures.TLX.forEach(function (it) {
@@ -403,7 +332,7 @@
       list.appendChild(row);
     });
     tlxCheck();
-    setProgress("Questionnaire 2 of 4", null);
+    setProgress("Survey 2 of 4", null);
     show("sTLX");
   }
 
@@ -414,7 +343,7 @@
   }
   $("tlxNext").onclick = function () { S.tlx.raw = Store.tlxRaw(S.tlx); save(); agency(); };
 
-  /* ---------- 5.2 · Sense of Agency ---------- */
+  /* ---------- 4.3 · Sense of Agency ---------- */
   function likertList(listId, items, n, lo, hi, store, check) {
     var list = $(listId); list.innerHTML = "";
     items.forEach(function (text, i) {
@@ -427,28 +356,28 @@
   }
 
   function agency() {
-    step = MAIN + TRANSFER + 2;
+    step = MAIN + 2;
     S.agency = { items: Measures.AGENCY.map(function () { return null; }), reverse: Measures.AGENCY.map(function (a) { return a.reverse; }), text: Measures.AGENCY.map(function (a) { return a.q; }) };
     likertList("agencyList", Measures.AGENCY.map(function (a) { return a.q; }), 7, Measures.AGENCY_LABELS[0], Measures.AGENCY_LABELS[1], S.agency.items, function () {
       var left = S.agency.items.filter(function (v) { return v == null; }).length;
       $("agencyLeft").textContent = left ? left + " left" : "All answered";
       $("agencyNext").disabled = left > 0;
     });
-    setProgress("Questionnaire 3 of 4", null);
+    setProgress("Survey 3 of 4", null);
     show("sAgency");
   }
   $("agencyNext").onclick = function () { S.agency.mean = Store.agencyMean(S.agency); save(); sus(); };
 
-  /* ---------- 5.3 · System Usability Scale (SUS) ---------- */
+  /* ---------- 4.4 · System Usability Scale (SUS) ---------- */
   function sus() {
-    step = MAIN + TRANSFER + 3;
+    step = MAIN + 3;
     S.sus = { items: Measures.SUS.map(function () { return null; }), score: null };
     likertList("susList", Measures.SUS, 5, Measures.SUS_LABELS[0], Measures.SUS_LABELS[1], S.sus.items, function () {
       var left = S.sus.items.filter(function (v) { return v == null; }).length;
       $("susLeft").textContent = left ? left + " left" : "All answered";
       $("susNext").disabled = left > 0;
     });
-    setProgress("Questionnaire 4 of 4", null);
+    setProgress("Survey 4 of 4", null);
     show("sSUS");
   }
   $("susNext").onclick = function () {
@@ -459,27 +388,81 @@
     done();
   };
 
-  /* ---------- 6 · done (reports hidden from participants; available for researcher) ---------- */
+  /* ---------- 6 · done (auto-export results.txt & summary card) ---------- */
   function done() {
     step = TOTAL;
     setProgress("Complete", null);
     window.removeEventListener("beforeunload", guard);
     show("sDone");
+
+    // Automatically trigger results.txt download upon session completion!
+    try {
+      Store.downloadResultsTxt(S);
+    } catch (e) {
+      console.warn("Auto-download results.txt error:", e);
+    }
+
+    renderDoneScreen();
   }
+
+  function renderDoneScreen() {
+    var dlResultsBtn = $("dlResultsBtn");
+    if (dlResultsBtn) {
+      dlResultsBtn.onclick = function () { Store.downloadResultsTxt(S); };
+    }
+    var dlJsonBtn = $("dlJsonBtn");
+    if (dlJsonBtn) {
+      dlJsonBtn.onclick = function () { Store.download("session-" + S.id + ".json", JSON.stringify(S, null, 2), "application/json"); };
+    }
+
+    var card = $("doneSummaryCard");
+    if (card && S) {
+      var m = Store.summarise(S);
+      var totals = { figA: 0, figB: 0, figC: 0, chooseD: 0, hints: 0, other: 0 };
+      (S.trials || []).forEach(function (t) {
+        if (!t.aoi) return;
+        if (t.aoi.figA) totals.figA += (t.aoi.figA.dwellTimeMs || 0);
+        if (t.aoi.figB) totals.figB += (t.aoi.figB.dwellTimeMs || 0);
+        if (t.aoi.figC) totals.figC += (t.aoi.figC.dwellTimeMs || 0);
+        if (t.aoi.chooseD) totals.chooseD += (t.aoi.chooseD.dwellTimeMs || 0);
+        if (t.aoi.hints) totals.hints += (t.aoi.hints.dwellTimeMs || 0);
+        if (t.aoi.other) totals.other += (t.aoi.other.dwellTimeMs || 0);
+      });
+      var totSec = (totals.figA + totals.figB + totals.figC + totals.chooseD + totals.hints + totals.other) / 1000;
+      function p(ms) { return totSec > 0 ? Math.round((ms / 1000 / totSec) * 100) + "%" : "0%"; }
+
+      card.innerHTML =
+        '<div class="eyebrow" style="margin-bottom:8px;">Session Eye Gaze & Progress Summary</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center;margin-bottom:16px;">' +
+          '<div style="background:var(--panel);padding:10px;border-radius:10px;border:1px solid var(--line);"><div style="font-size:1.3rem;font-weight:700;color:var(--accent);">' + m.mainDone + '/10</div><div style="font-size:0.75rem;color:var(--muted);">Answered</div></div>' +
+          '<div style="background:var(--panel);padding:10px;border-radius:10px;border:1px solid var(--line);"><div style="font-size:1.3rem;font-weight:700;color:var(--ok);">' + (m.accuracy != null ? (m.accuracy * 100).toFixed(0) + "%" : "–") + '</div><div style="font-size:0.75rem;color:var(--muted);">Accuracy</div></div>' +
+          '<div style="background:var(--panel);padding:10px;border-radius:10px;border:1px solid var(--line);"><div style="font-size:1.3rem;font-weight:700;color:var(--ink);">' + (m.meanTimeS != null ? m.meanTimeS.toFixed(1) + "s" : "–") + '</div><div style="font-size:0.75rem;color:var(--muted);">Mean Time</div></div>' +
+        '</div>' +
+        '<div class="lbl" style="margin-bottom:8px;font-size:0.8rem;">Gaze Attention by Mapped Boundary:</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;font-size:0.8rem;">' +
+          '<div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;background:#ff4055;flex:none;"></span>Figure A [Red]: <b>' + (totals.figA / 1000).toFixed(1) + 's (' + p(totals.figA) + ')</b></div>' +
+          '<div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;background:#3b82f6;flex:none;"></span>Figure B [Blue]: <b>' + (totals.figB / 1000).toFixed(1) + 's (' + p(totals.figB) + ')</b></div>' +
+          '<div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;background:#ff9800;flex:none;"></span>Figure C [Orange]: <b>' + (totals.figC / 1000).toFixed(1) + 's (' + p(totals.figC) + ')</b></div>' +
+          '<div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;background:#facc15;flex:none;"></span>Choose D [Yellow]: <b>' + (totals.chooseD / 1000).toFixed(1) + 's (' + p(totals.chooseD) + ')</b></div>' +
+          '<div style="display:flex;align-items:center;gap:6px;grid-column:span 2;"><span style="width:10px;height:10px;border-radius:50%;background:#22c55e;flex:none;"></span>Hints Panel [Green]: <b>' + (totals.hints / 1000).toFixed(1) + 's (' + p(totals.hints) + ')</b></div>' +
+        '</div>';
+    }
+  }
+
   $("againBtn").onclick = function () { location.reload(); };
 
   /* Keyboard shortcuts: 1-4 pick an option, Enter confirms */
   document.addEventListener("keydown", function (e) {
     if (/input|textarea|select/i.test(e.target.tagName)) return;
-    var onQ = !$("sQuestion").hidden, onT = !$("sTransfer").hidden && tPhase === "choose";
-    if (!onQ && !onT) return;
-    var root = onQ ? $("qopts") : $("topts");
+    var onQ = !$("sQuestion").hidden;
+    if (!onQ) return;
+    var root = $("qopts");
     if (e.key >= "1" && e.key <= "4" && !root.classList.contains("done")) {
       var b = root.querySelectorAll(".opt")[+e.key - 1];
       if (b) b.click();
     }
     if (e.key === "Enter") {
-      var c = onQ ? $("confirmBtn") : $("tConfirm");
+      var c = $("confirmBtn");
       if (!c.disabled) { e.preventDefault(); c.click(); }
     }
   });

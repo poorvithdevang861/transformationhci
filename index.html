@@ -33,10 +33,9 @@
         <p class="lead">Each puzzle shows <b>A : B :: C : ?</b> — figure A changes into B by a few transformations (turning, flipping, resizing, slanting, filling). Apply the same changes to C and pick the figure that comes next.</p>
         <ol class="steps">
           <li><span>1</span><div><b id="nMain">10 puzzles with hints</b><em>Use hints whenever you are stuck.</em></div></li>
-          <li id="stepTransfer"><span>2</span><div><b id="nTransfer">4 new puzzles, no hints</b><em>Name the transformation you saw.</em></div></li>
-          <li><span>3</span><div><b>Three short questionnaires</b><em>Effort, control and ease of use.</em></div></li>
+          <li><span>2</span><div><b>Post-study survey</b><em>Mental effort, workload, control, and usability.</em></div></li>
         </ol>
-        <p class="meta wrap">About 15–20 minutes. In-browser laptop camera eye-tracking is active with your consent.</p>
+        <p class="meta wrap">About 10–12 minutes. In-browser laptop camera eye-tracking is active with your consent.</p>
       </div>
 
       <div class="panel setup">
@@ -108,7 +107,7 @@
           </div>
         </div>
         <div class="figs" id="figs"></div>
-        <div class="choose">
+        <div class="choose" data-aoi="choose-d">
           <div class="lbl">Choose D</div>
           <div class="opts4" id="qopts" role="radiogroup" aria-label="Answer options"></div>
         </div>
@@ -117,7 +116,7 @@
           <div class="r"><button class="ibtn tb primary" id="confirmBtn" disabled>{icon-check}Confirm answer</button></div>
         </div>
       </section>
-      <section class="panel hpanel" aria-labelledby="hTitle">
+      <section class="panel hpanel" id="hintPanel" data-aoi="hint-panel" aria-labelledby="hTitle">
         <div class="phead">
           <div>
             <div class="eyebrow">Hints</div>
@@ -129,46 +128,11 @@
     </div>
   </section>
 
-  <!-- 4 · transfer test: unseen questions, no hints, then name the transformation -->
-  <section class="screen" id="sTransferIntro" hidden>
-    <div class="panel narrow">
-      <div class="eyebrow">Part 2 · New puzzles</div>
-      <h2 class="ptitle big">Now try a few on your own</h2>
-      <ul class="howto">
-        <li>{icon-lock}<span>These puzzles are new and have <b>no hints</b>.</span></li>
-        <li>{icon-check}<span>Pick D, then say which transformation happened to each shape from A to B.</span></li>
-        <li>{icon-clock}<span>Take your time; there is no feedback in this part.</span></li>
-      </ul>
-      <div class="edge"><div class="r"><button class="ibtn tb primary" id="transferBtn">Start part 2{icon-arrow}</button></div></div>
-    </div>
-  </section>
-
-  <section class="screen" id="sTransfer" hidden>
-    <div class="panel tpanel">
-      <div class="phead">
-        <div>
-          <div class="eyebrow" id="tEyebrow"></div>
-          <h2 class="ptitle" id="tTitle">Which figure completes A : B :: C : ?</h2>
-        </div>
-      </div>
-      <div class="figs" id="tfigs"></div>
-      <div class="choose" id="tChoose">
-        <div class="lbl">Choose D</div>
-        <div class="opts4" id="topts" role="radiogroup" aria-label="Answer options"></div>
-      </div>
-      <div class="identify" id="tIdentify" hidden></div>
-      <div class="qfoot edge">
-        <div class="l meta" id="tPickState">{icon-pointer}Tap an option</div>
-        <div class="r"><button class="ibtn tb primary" id="tConfirm" disabled>{icon-check}Confirm answer</button></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 5 · questionnaires -->
-  <!-- 5.0 · overall mental effort (moved to last) -->
+  <!-- 4 · questionnaires -->
+  <!-- 4.1 · overall mental effort -->
   <section class="screen" id="sEffort" hidden>
     <div class="panel narrow form">
-      <div class="eyebrow">Part 3 · Questionnaires</div>
+      <div class="eyebrow">Part 2 · Overall mental effort</div>
       <h2 class="ptitle big">Overall mental effort</h2>
       <p class="lead">How much mental effort did solving the puzzles take overall?</p>
       <div id="overallEffortScale" style="margin:20px 0;"></div>
@@ -179,10 +143,10 @@
     </div>
   </section>
 
-  <!-- 5.1 · questionnaires -->
+  <!-- 4.2 · questionnaires -->
   <section class="screen" id="sTLX" hidden>
     <div class="panel narrow form">
-      <div class="eyebrow">Part 3 · Workload (NASA-TLX)</div>
+      <div class="eyebrow">Part 2 · Workload (NASA-TLX)</div>
       <h2 class="ptitle big">How demanding were the puzzles?</h2>
       <p class="meta wrap" id="tlxIntro">Think about the puzzles with hints. Drag each slider.</p>
       <div class="qlist" id="tlxList"></div>
@@ -192,7 +156,7 @@
 
   <section class="screen" id="sAgency" hidden>
     <div class="panel narrow form">
-      <div class="eyebrow">Part 3 · Sense of control</div>
+      <div class="eyebrow">Part 2 · Sense of control</div>
       <h2 class="ptitle big">How did the hints feel?</h2>
       <p class="meta wrap">1 = strongly disagree, 7 = strongly agree.</p>
       <div class="qlist" id="agencyList"></div>
@@ -202,7 +166,7 @@
 
   <section class="screen" id="sSUS" hidden>
     <div class="panel narrow form">
-      <div class="eyebrow">Part 3 · Ease of use (SUS)</div>
+      <div class="eyebrow">Part 2 · Ease of use (SUS)</div>
       <h2 class="ptitle big">What did you think of this website?</h2>
       <p class="meta wrap">1 = strongly disagree, 5 = strongly agree.</p>
       <div class="qlist" id="susList"></div>
@@ -211,15 +175,27 @@
     </div>
   </section>
 
-  <!-- 6 · done (reports hidden from participants; available in researcher dashboard) -->
+  <!-- 6 · done -->
   <section class="screen" id="sDone" hidden>
-    <div class="panel narrow center" style="padding:48px 24px;text-align:center;">
+    <div class="panel narrow center" style="padding:36px 24px;text-align:center;">
       <div class="done-badge" style="margin:0 auto 16px;">{icon-check}</div>
-      <h2 class="ptitle big">Study Complete</h2>
-      <p class="lead" style="margin-top:8px;">Thank you for your time and participation! Your responses and eye-tracking recordings have been securely submitted to the researcher.</p>
-      <p class="meta wrap" style="justify-content:center;margin-top:16px;color:var(--faint);">All data has been saved anonymously. You may now close this browser tab.</p>
-      <div style="margin-top:28px;">
-        <button class="ibtn tb" id="againBtn" style="margin:0 auto;">{icon-home}New Session</button>
+      <h2 class="ptitle big">Study Complete &amp; Progress Saved</h2>
+      <p class="lead" style="margin-top:8px;">Thank you for your participation! Your answers and eye-gaze tracking metrics across all mapped boundaries have been saved.</p>
+      
+      <div id="doneSummaryCard" style="margin:20px 0;text-align:left;background:var(--sunken);border:1px solid var(--line);border-radius:14px;padding:18px;"></div>
+
+      <div class="edge" style="justify-content:center;gap:12px;margin-top:20px;">
+        <button type="button" class="ibtn tb primary" id="dlResultsBtn" style="padding:0 20px;height:42px;">
+          <svg class="i" aria-hidden="true"><use href="#i-download"/></svg>Download results.txt
+        </button>
+        <button type="button" class="ibtn tb" id="dlJsonBtn" style="padding:0 16px;height:42px;">
+          <svg class="i" aria-hidden="true"><use href="#i-code"/></svg>Download JSON
+        </button>
+      </div>
+
+      <div style="margin-top:24px;display:flex;justify-content:center;gap:12px;">
+        <button class="ibtn tb" id="againBtn"><svg class="i" aria-hidden="true"><use href="#i-home"/></svg>New Session</button>
+        <a class="ibtn tb" href="researcher.html"><svg class="i" aria-hidden="true"><use href="#i-chart"/></svg>Researcher Dashboard</a>
       </div>
     </div>
   </section>

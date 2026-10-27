@@ -90,7 +90,7 @@
         <div class="eyebrow">Puzzle Demonstration</div>
         <h2 class="ptitle">Look across the figures: A turns into B, what does C turn into?</h2>
         <div class="figs svg" id="demoFigs" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;"></div>
-        <div class="choose" style="margin-top:12px;">
+        <div class="choose" data-aoi="choose-d" style="margin-top:12px;padding:8px;border-radius:14px;">
           <div class="lbl">Answer Candidates (Option 1 to 4)</div>
           <div class="opts4" id="demoOpts"></div>
         </div>
@@ -172,6 +172,9 @@
           <div class="edge"><span class="lbl">Min Dwell Cutoff</span><span class="meta" id="dwellVal">0 ms</span></div>
           <input type="range" id="dwellSlider" min="0" max="400" step="20" value="0" style="accent-color:var(--accent);">
         </div>
+        <label class="chk" style="font-size:0.8rem;margin-top:2px;">
+          <input type="checkbox" id="showBoundariesChk" checked> Show Mapped Boundaries (from diagram)
+        </label>
       </div>
 
       <!-- Scanpath Chronological Replay Player -->
@@ -205,6 +208,9 @@
       <!-- Export Actions -->
       <div class="panel" style="gap:8px;">
         <div class="eyebrow">Export Analytics</div>
+        <button type="button" class="ibtn tb" id="exportTxtBtn" disabled style="background:linear-gradient(135deg, #10b981, #059669);color:#fff;border:0;font-weight:600;">
+          <svg class="i" aria-hidden="true"><use href="#i-download"/></svg>Export results.txt
+        </button>
         <button type="button" class="ibtn tb" id="exportPngBtn" disabled>
           <svg class="i" aria-hidden="true"><use href="#i-download"/></svg>Export Heatmap Image (PNG)
         </button>
@@ -223,6 +229,7 @@
 <script src="js/problems.js"></script>
 <script src="js/study/heatmap.js"></script>
 <script src="js/study/gaze.js"></script>
+<script src="js/study/store.js"></script>
 <script>
 (function() {
   'use strict';
@@ -255,7 +262,7 @@
     var figsEl = $('demoFigs'), optsEl = $('demoOpts');
     figsEl.className = "figs svg";
     figsEl.innerHTML = ["A", "B", "C", "D"].map(function (L) {
-      return '<div class="fig' + (L === "B" ? " target" : L === "D" ? " answer" : "") + '"><svg class="box" viewBox="0 0 100 100" role="img" aria-label="Figure ' + L + '"></svg><span class="flab">' + L + "</span></div>";
+      return '<div class="fig' + (L === "B" ? " target" : L === "D" ? " answer" : "") + '" data-aoi="fig-' + L + '"><svg class="box" viewBox="0 0 100 100" role="img" aria-label="Figure ' + L + '"></svg><span class="flab">' + L + "</span></div>";
     }).join("");
     var svgs = figsEl.querySelectorAll("svg");
     [0, 1, 2].forEach(function (i) {
@@ -268,6 +275,8 @@
     optsEl.style.setProperty("--img", TA.sheetUrl(set, idx));
     [0, 1, 2, 3].forEach(function (n) {
       var cell = document.createElement("div"); cell.className = "cell";
+      cell.setAttribute("data-aoi", "option-" + (n + 1));
+      if (n === 3) cell.classList.add("boundary-option-4");
       var b = document.createElement("button"); b.className = "opt"; b.type = "button";
       b.setAttribute("role", "radio"); b.setAttribute("aria-checked", "false"); b.setAttribute("aria-label", "Option " + (n + 1));
       b.style.backgroundPosition = TA.optionCropPosition(n);
@@ -405,6 +414,7 @@
     $('exportPngBtn').disabled = false;
     $('exportCsvBtn').disabled = false;
     $('exportJsonBtn').disabled = false;
+    if ($('exportTxtBtn')) $('exportTxtBtn').disabled = false;
 
     // Enable replay scrubber
     $('replayScrubber').disabled = false;
@@ -419,6 +429,19 @@
     redraw();
   }
 
+  var aoiColorMap = {
+    figA: { color: '#ff4055', tag: '[Red]' },
+    figB: { color: '#3b82f6', tag: '[Blue]' },
+    figC: { color: '#ff9800', tag: '[Orange]' },
+    chooseD: { color: '#facc15', tag: '[Yellow]' },
+    option1: { color: '#a855f7', tag: '[Purple]' },
+    option2: { color: '#a855f7', tag: '[Purple]' },
+    option3: { color: '#a855f7', tag: '[Purple]' },
+    option4: { color: '#a855f7', tag: '[Purple]' },
+    hints: { color: '#22c55e', tag: '[Green]' },
+    other: { color: '#64748b', tag: '[Gray]' }
+  };
+
   function renderAOICards(aoiMetrics) {
     var listEl = $('aoiList');
     listEl.innerHTML = '';
@@ -431,15 +454,20 @@
       var m = aoiMetrics[key];
       if (m.dwellTimeMs === 0) return;
       var sec = (m.dwellTimeMs / 1000).toFixed(1);
+      var cInfo = aoiColorMap[key] || { color: '#64748b', tag: '' };
       var item = document.createElement('div');
       item.className = 'aoi-item';
       item.innerHTML =
         '<div class="aoi-header">' +
-          '<span>' + m.name + '</span>' +
+          '<span style="display:flex;align-items:center;gap:6px;">' +
+            '<span class="aoi-swatch" style="background:' + cInfo.color + ';"></span>' +
+            '<span>' + m.name + '</span> ' +
+            '<span style="font-size:10px;font-weight:700;color:' + cInfo.color + ';">' + cInfo.tag + '</span>' +
+          '</span>' +
           '<span style="font-family:var(--f-mono);color:var(--accent);">' + sec + 's (' + m.pctTotal + '%)</span>' +
         '</div>' +
         '<div class="aoi-bar-track">' +
-          '<div class="aoi-bar-fill" style="width:' + m.pctTotal + '%;"></div>' +
+          '<div class="aoi-bar-fill" style="width:' + m.pctTotal + '%;background:' + cInfo.color + ';"></div>' +
         '</div>';
       listEl.appendChild(item);
     });
@@ -456,10 +484,6 @@
     var minDwell = +$('dwellSlider').value;
     var scrubStep = +$('replayScrubber').value || lastResult.fixations.length;
 
-    // Clear canvas
-    var ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
     // Viewport bounding offset relative to window
     var vRect = viewport.getBoundingClientRect();
     var adjustedSamples = lastResult.samples.map(function(s) {
@@ -468,6 +492,20 @@
     var adjustedFixations = lastResult.fixations.map(function(f) {
       return { id: f.id, t: f.t, x: f.x - vRect.left, y: f.y - vRect.top, duration: f.duration, target: f.target };
     });
+
+    // Clear canvas
+    var ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    var showBoundaries = $('showBoundariesChk') && $('showBoundariesChk').checked;
+    var puzzleEl = $('tmplPuzzle');
+    if (puzzleEl) {
+      if (showBoundaries) {
+        puzzleEl.classList.add('show-mapped-boundaries');
+      } else {
+        puzzleEl.classList.remove('show-mapped-boundaries');
+      }
+    }
 
     if (viewMode === 'heatmap' || viewMode === 'both') {
       HeatmapEngine.renderHeatmap(canvas, adjustedFixations, {
@@ -487,6 +525,10 @@
         showDwell: true,
         keepHeatmap: (viewMode === 'both')
       });
+    }
+
+    if (showBoundaries && lastResult.boundaries) {
+      HeatmapEngine.drawMappedBoundaries(canvas, lastResult.boundaries, { showLabels: true });
     }
   }
 
@@ -591,6 +633,102 @@
     a.download = 'gaze-session-' + Date.now() + '.json';
     a.click();
   };
+
+  if ($('showBoundariesChk')) {
+    $('showBoundariesChk').onchange = function() {
+      redraw();
+    };
+  }
+
+  function formatEyetrackerResultsTxt(result) {
+    var sep = "=".repeat(82);
+    var subSep = "-".repeat(82);
+    function pad(str, len, right) {
+      str = String(str || "");
+      if (str.length >= len) return str;
+      var p = " ".repeat(len - str.length);
+      return right ? p + str : str + p;
+    }
+    var lines = [];
+    lines.push(sep);
+    lines.push("TRANSFORMATION ANIMATOR - LAB EYE-TRACKING TEST RESULTS (RESULTS.TXT)");
+    lines.push(sep);
+    lines.push("Timestamp           : " + new Date().toLocaleString());
+    lines.push("Active Template     : " + activeTab.toUpperCase());
+    lines.push("Duration            : " + ((result.durationMs || 0) / 1000).toFixed(2) + " seconds");
+    lines.push("Total Gaze Samples  : " + (result.samples ? result.samples.length : 0));
+    lines.push("Total Fixations     : " + (result.fixations ? result.fixations.length : 0));
+    lines.push(sep);
+    lines.push("");
+
+    lines.push("1. GAZE ATTENTION OVER MAPPED BOUNDARIES (EXACT MARKED REGIONS)");
+    lines.push(subSep);
+    lines.push(pad("Boundary Zone", 32) + pad("Color Tag", 12) + pad("Dwell (s)", 14, true) + pad("% Gaze", 12, true) + pad("Fixations", 12, true));
+    lines.push("-".repeat(82));
+
+    var m = result.aoiMetrics || {};
+    var zones = [
+      { key: "figA", name: "Figure A", tag: "[Red]" },
+      { key: "figB", name: "Figure B", tag: "[Blue]" },
+      { key: "figC", name: "Figure C", tag: "[Orange]" },
+      { key: "chooseD", name: "Choose D Candidates Area", tag: "[Yellow]" },
+      { key: "option1", name: "  - Option 1", tag: "[Purple]" },
+      { key: "option2", name: "  - Option 2", tag: "[Purple]" },
+      { key: "option3", name: "  - Option 3", tag: "[Purple]" },
+      { key: "option4", name: "  - Option 4", tag: "[Purple]" },
+      { key: "hints", name: "Hints Panel", tag: "[Green]" },
+      { key: "other", name: "Outside Mapped Boundaries", tag: "[Gray]" }
+    ];
+
+    var totDwell = 0;
+    zones.forEach(function(z) {
+      var val = m[z.key] || { dwellTimeMs: 0, fixationsCount: 0, pctTotal: 0 };
+      var sec = (val.dwellTimeMs / 1000).toFixed(2) + " s";
+      var pct = val.pctTotal + "%";
+      lines.push(pad(z.name, 32) + pad(z.tag, 12) + pad(sec, 14, true) + pad(pct, 12, true) + pad(String(val.fixationsCount || 0), 12, true));
+      if (z.key !== "option1" && z.key !== "option2" && z.key !== "option3" && z.key !== "option4") {
+        totDwell += val.dwellTimeMs;
+      }
+    });
+
+    lines.push("-".repeat(82));
+    lines.push(pad("TOTAL GAZE TRACKED", 44) + pad((totDwell / 1000).toFixed(2) + " s", 14, true) + pad("100.0%", 12, true));
+    lines.push("");
+
+    lines.push("2. FIXATION SEQUENCE (CHRONOLOGICAL)");
+    lines.push(subSep);
+    lines.push(pad("#", 6) + pad("Start (s)", 12) + pad("Duration (ms)", 16) + pad("Coordinates (x, y)", 24) + pad("Target Boundary", 24));
+    lines.push("-".repeat(82));
+
+    if (result.fixations && result.fixations.length) {
+      result.fixations.forEach(function(f, idx) {
+        var startS = (f.t / 1000).toFixed(2) + "s";
+        var dur = f.duration + " ms";
+        var coords = "(" + Math.round(f.x) + ", " + Math.round(f.y) + ")";
+        var tgt = f.target || "outside";
+        lines.push(pad(String(idx + 1), 6) + pad(startS, 12) + pad(dur, 16) + pad(coords, 24) + pad(tgt, 24));
+      });
+    } else {
+      lines.push("No fixations detected (dwell threshold not reached).");
+    }
+
+    lines.push("");
+    lines.push("End of Results Log.");
+    return lines.join("\n");
+  }
+
+  if ($('exportTxtBtn')) {
+    $('exportTxtBtn').onclick = function() {
+      if (!lastResult) return;
+      var txt = formatEyetrackerResultsTxt(lastResult);
+      var blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'results_eyegaze_' + Date.now() + '.txt';
+      a.click();
+    };
+  }
 
 })();
 </script>

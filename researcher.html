@@ -20,6 +20,7 @@
     </div>
     <div class="r">
       <a class="ibtn tb" href="eyetracker.html"><svg class="i" aria-hidden="true"><use href="#i-eye"/></svg>Eye Tracker Studio</a>
+      <button class="ibtn tb" id="exResultsTxt" style="background:linear-gradient(135deg, #10b981, #059669);color:#fff;border:0;font-weight:600;"><svg class="i" aria-hidden="true"><use href="#i-download"/></svg>results.txt</button>
       <button class="ibtn tb" id="exGaze"><svg class="i" aria-hidden="true"><use href="#i-eye"/></svg>Gaze CSV</button>
       <button class="ibtn tb" id="exTrials"><svg class="i" aria-hidden="true"><use href="#i-download"/></svg>Trials CSV</button>
       <button class="ibtn tb" id="exSessions"><svg class="i" aria-hidden="true"><use href="#i-download"/></svg>Sessions CSV</button>
@@ -124,6 +125,9 @@
             <div class="edge"><span class="lbl">Dwell Radius</span><span class="meta" id="mRadVal">36px</span></div>
             <input type="range" id="mRadSlider" min="15" max="75" value="36" style="accent-color:var(--accent);">
           </div>
+          <label class="chk" style="font-size:0.8rem;margin-top:2px;">
+            <input type="checkbox" id="mShowBoundaries" checked> Show Mapped Boundaries (from diagram)
+          </label>
         </div>
 
         <div class="panel" style="gap:8px;">
@@ -143,6 +147,9 @@
         </div>
 
         <div class="panel" style="gap:8px;">
+          <button type="button" class="ibtn tb" id="mDlTxt">
+            <svg class="i" aria-hidden="true"><use href="#i-download"/></svg>Download Trial results.txt
+          </button>
           <button type="button" class="ibtn tb" id="mDlPng">
             <svg class="i" aria-hidden="true"><use href="#i-download"/></svg>Download Heatmap PNG
           </button>

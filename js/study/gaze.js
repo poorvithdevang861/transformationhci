@@ -166,33 +166,72 @@ var GazeTracker = (function () {
     }
   }
 
-  /* Detect Area of Interest (AOI) from point */
-  function detectAOI(x, y) {
-    if (x < 0 || y < 0 || x > window.innerWidth || y > window.innerHeight) return 'off-screen';
-    var el = document.elementFromPoint(x, y);
-    if (!el) return 'background';
+  /* Capture screen bounding rects for the 6 mapped boundaries */
+  function getActiveBoundaries() {
+    var bounds = {};
+    function getRect(el) {
+      if (!el) return null;
+      var r = el.getBoundingClientRect();
+      return { x: Math.round(r.left), y: Math.round(r.top), width: Math.round(r.width), height: Math.round(r.height) };
+    }
+    bounds.figA = getRect(document.querySelector('[data-aoi="fig-A"], #figs .fig:nth-child(1), .fig:nth-child(1)'));
+    bounds.figB = getRect(document.querySelector('[data-aoi="fig-B"], #figs .fig:nth-child(2), .fig:nth-child(2)'));
+    bounds.figC = getRect(document.querySelector('[data-aoi="fig-C"], #figs .fig:nth-child(3), .fig:nth-child(3)'));
+    bounds.chooseD = getRect(document.querySelector('[data-aoi="choose-d"], .choose, .opts4, #qopts'));
+    bounds.option1 = getRect(document.querySelector('[data-aoi="option-1"], .opts4 .cell:nth-child(1), #qopts .cell:nth-child(1)'));
+    bounds.option2 = getRect(document.querySelector('[data-aoi="option-2"], .opts4 .cell:nth-child(2), #qopts .cell:nth-child(2)'));
+    bounds.option3 = getRect(document.querySelector('[data-aoi="option-3"], .opts4 .cell:nth-child(3), #qopts .cell:nth-child(3)'));
+    bounds.option4 = getRect(document.querySelector('[data-aoi="option-4"], .opts4 .cell:nth-child(4), #qopts .cell:nth-child(4)'));
+    bounds.hints = getRect(document.querySelector('[data-aoi="hint-panel"], .hpanel, .hint-root'));
+    return bounds;
+  }
 
-    // Check for puzzle figures
+  /* Detect Area of Interest (AOI) from point matching user-specified boundaries */
+  function detectAOI(x, y) {
+    if (x < 0 || y < 0 || x > window.innerWidth || y > window.innerHeight) return 'outside';
+    var el = document.elementFromPoint(x, y);
+    if (!el) return 'outside';
+
+    // 1. Direct or closest data-aoi attribute
+    var marked = el.closest('[data-aoi]');
+    if (marked) {
+      var aoiVal = marked.getAttribute('data-aoi');
+      if (aoiVal) return aoiVal;
+    }
+
+    // 2. Check puzzle figures A, B, C, D (Red = A, Blue = B, Orange = C)
     var fig = el.closest('.fig');
     if (fig) {
       var fcap = fig.querySelector('.flab') || fig.querySelector('.cap b');
-      return fcap ? 'fig-' + fcap.textContent.trim() : 'figure';
+      var label = fcap ? fcap.textContent.trim().toUpperCase() : '';
+      if (label === 'A') return 'fig-A';
+      if (label === 'B') return 'fig-B';
+      if (label === 'C') return 'fig-C';
+      if (label === 'D') return 'fig-D';
+      return 'figure';
     }
-    // Check for answer options
-    var opt = el.closest('.opt');
-    if (opt) {
-      var ocap = opt.querySelector('.lbl') || opt.querySelector('.cap b');
-      return ocap ? 'option-' + ocap.textContent.trim() : 'option';
+
+    // 3. Check individual answer candidate options (Option 1 - 4: Purple boundary)
+    var cell = el.closest('.cell');
+    if (cell && cell.closest('.opts4, #qopts, #topts, #demoOpts, #mOpts')) {
+      var optB = cell.querySelector('.cap b');
+      if (optB) return 'option-' + optB.textContent.trim();
+      var idx = Array.prototype.indexOf.call(cell.parentNode.children, cell) + 1;
+      return 'option-' + idx;
     }
-    // Check for hint panel / player
+
+    // 4. Check Choose D / options container (Yellow boundary)
+    if (el.closest('.choose') || el.closest('.opts4')) {
+      return 'choose-d';
+    }
+
+    // 5. Check hints panel / player (Green boundary)
     if (el.closest('.hpanel') || el.closest('.hint-root')) {
-      return 'hint';
+      return 'hint-panel';
     }
-    // Check for confirm/action bar
-    if (el.closest('.qfoot') || el.closest('.sbar')) {
-      return 'navigation';
-    }
-    return el.tagName.toLowerCase();
+
+    // 6. Outside of designated boundaries
+    return 'outside';
   }
 
   /* Create live visual gaze dot */
@@ -222,31 +261,36 @@ var GazeTracker = (function () {
     state.recording = true;
   }
 
-  /* Stop recording and return structured gaze data + fixations + AOI stats */
+  /* Stop recording and return structured gaze data + fixations + boundary-mapped AOI stats */
   function stopRecording() {
     state.recording = false;
     var samples = trialBuffer.slice();
     trialBuffer = [];
 
+    // Capture screen bounding boxes of the mapped boundaries
+    var boundaries = getActiveBoundaries();
+
     // Calculate fixations using I-DT
     var fixations = HeatmapEngine.computeFixations(samples);
 
-    // Compute AOI summary metrics
+    // Compute AOI summary metrics over the specific boundaries from the user request
     var aoiSummary = HeatmapEngine.computeAOIMetrics(samples, {
-      figA: { target: 'fig-A', name: 'Figure A' },
-      figB: { target: 'fig-B', name: 'Figure B' },
-      figC: { target: 'fig-C', name: 'Figure C' },
-      option1: { target: 'option-1', name: 'Option 1' },
-      option2: { target: 'option-2', name: 'Option 2' },
-      option3: { target: 'option-3', name: 'Option 3' },
-      option4: { target: 'option-4', name: 'Option 4' },
-      hints: { target: 'hint', name: 'Hints' }
+      figA: { id: 'figA', target: 'fig-A', name: 'Figure A', color: '#ff4055', boundaryTag: '[Red]' },
+      figB: { id: 'figB', target: 'fig-B', name: 'Figure B', color: '#3b82f6', boundaryTag: '[Blue]' },
+      figC: { id: 'figC', target: 'fig-C', name: 'Figure C', color: '#ff9800', boundaryTag: '[Orange]' },
+      chooseD: { id: 'chooseD', target: 'choose-d', name: 'Choose D (Candidates Area)', color: '#facc15', boundaryTag: '[Yellow]' },
+      option1: { id: 'option1', target: 'option-1', name: 'Option 1', color: '#a855f7', boundaryTag: '[Purple]' },
+      option2: { id: 'option2', target: 'option-2', name: 'Option 2', color: '#a855f7', boundaryTag: '[Purple]' },
+      option3: { id: 'option3', target: 'option-3', name: 'Option 3', color: '#a855f7', boundaryTag: '[Purple]' },
+      option4: { id: 'option4', target: 'option-4', name: 'Option 4', color: '#a855f7', boundaryTag: '[Purple]' },
+      hints: { id: 'hints', target: 'hint-panel', name: 'Hints Panel', color: '#22c55e', boundaryTag: '[Green]' }
     });
 
     return {
       samples: samples,
       fixations: fixations,
       aoiMetrics: aoiSummary,
+      boundaries: boundaries,
       sampleCount: samples.length,
       fixationCount: fixations.length
     };
@@ -363,6 +407,8 @@ var GazeTracker = (function () {
     addGazeListener: addGazeListener,
     removeGazeListener: removeGazeListener,
     createCalibrationModal: createCalibrationModal,
+    getActiveBoundaries: getActiveBoundaries,
+    detectAOI: detectAOI,
     getState: function () { return Object.assign({}, state); }
   };
 })();

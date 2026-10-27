@@ -100,24 +100,43 @@ var HeatmapEngine = (function () {
     return fixations;
   }
 
-  /* Compute Area of Interest (AOI) Dwell Times */
+  /* Compute Area of Interest (AOI) Dwell Times over Mapped Boundaries */
   function computeAOIMetrics(samples, aoiDefinitions) {
     var metrics = {};
-    if (!aoiDefinitions) return metrics;
+    if (!aoiDefinitions) {
+      aoiDefinitions = {
+        figA: { id: 'figA', target: 'fig-A', name: 'Figure A', color: '#ff4055', boundaryTag: '[Red]' },
+        figB: { id: 'figB', target: 'fig-B', name: 'Figure B', color: '#3b82f6', boundaryTag: '[Blue]' },
+        figC: { id: 'figC', target: 'fig-C', name: 'Figure C', color: '#ff9800', boundaryTag: '[Orange]' },
+        chooseD: { id: 'chooseD', target: 'choose-d', name: 'Choose D (Candidates Area)', color: '#facc15', boundaryTag: '[Yellow]' },
+        option1: { id: 'option1', target: 'option-1', name: 'Option 1', color: '#a855f7', boundaryTag: '[Purple]' },
+        option2: { id: 'option2', target: 'option-2', name: 'Option 2', color: '#a855f7', boundaryTag: '[Purple]' },
+        option3: { id: 'option3', target: 'option-3', name: 'Option 3', color: '#a855f7', boundaryTag: '[Purple]' },
+        option4: { id: 'option4', target: 'option-4', name: 'Option 4', color: '#a855f7', boundaryTag: '[Purple]' },
+        hints: { id: 'hints', target: 'hint-panel', name: 'Hints Panel', color: '#22c55e', boundaryTag: '[Green]' }
+      };
+    }
 
     var aoiKeys = Object.keys(aoiDefinitions);
     aoiKeys.forEach(function (key) {
+      var d = aoiDefinitions[key];
       metrics[key] = {
-        name: aoiDefinitions[key].name || key,
+        id: key,
+        name: d.name || key,
+        color: d.color || '#a597ff',
+        boundaryTag: d.boundaryTag || '',
         dwellTimeMs: 0,
         fixationsCount: 0,
-        ttffMs: null, // Time to First Fixation
+        ttffMs: null, // Time to First Fixation (ms)
         samplesCount: 0,
         pctTotal: 0
       };
     });
     metrics.other = {
-      name: 'Other',
+      id: 'other',
+      name: 'Outside Mapped Boundaries',
+      color: '#94a3b8',
+      boundaryTag: '[Gray]',
       dwellTimeMs: 0,
       fixationsCount: 0,
       ttffMs: null,
@@ -136,6 +155,7 @@ var HeatmapEngine = (function () {
       var dt = Math.min(100, Math.max(10, nextT - s.t));
       var matchedKey = null;
 
+      // Direct target matching
       for (var k = 0; k < aoiKeys.length; k++) {
         var aoi = aoiDefinitions[aoiKeys[k]];
         if (aoi.bounds) {
@@ -144,9 +164,14 @@ var HeatmapEngine = (function () {
             matchedKey = aoiKeys[k];
             break;
           }
-        } else if (aoi.target && s.target === aoi.target) {
-          matchedKey = aoiKeys[k];
-          break;
+        } else if (aoi.target) {
+          if (s.target === aoi.target) {
+            matchedKey = aoiKeys[k];
+            break;
+          } else if (aoi.target === 'hint-panel' && (s.target === 'hint' || s.target === 'hint-panel')) {
+            matchedKey = aoiKeys[k];
+            break;
+          }
         }
       }
 
@@ -156,10 +181,22 @@ var HeatmapEngine = (function () {
       if (bucket.ttffMs === null) {
         bucket.ttffMs = s.t;
       }
+
+      // If gaze is on an option (e.g. option-1 .. option-4), it also contributes to the overall Choose D candidates area
+      if (s.target && s.target.indexOf('option-') === 0 && metrics.chooseD && matchedKey !== 'chooseD') {
+        metrics.chooseD.dwellTimeMs += dt;
+        metrics.chooseD.samplesCount++;
+        if (metrics.chooseD.ttffMs === null) {
+          metrics.chooseD.ttffMs = s.t;
+        }
+      }
     }
 
     var totalDwell = 0;
-    Object.keys(metrics).forEach(function (k) { totalDwell += metrics[k].dwellTimeMs; });
+    // Calculate percentages relative to primary exclusive areas (Fig A, B, C, Choose D, Hints, Other)
+    var primaryKeys = ['figA', 'figB', 'figC', 'chooseD', 'hints', 'other'].filter(function (k) { return metrics[k] != null; });
+    primaryKeys.forEach(function (k) { totalDwell += metrics[k].dwellTimeMs; });
+
     if (totalDwell > 0) {
       Object.keys(metrics).forEach(function (k) {
         metrics[k].pctTotal = Math.round((metrics[k].dwellTimeMs / totalDwell) * 100);
@@ -167,6 +204,75 @@ var HeatmapEngine = (function () {
     }
 
     return metrics;
+  }
+
+  /* Draw color-coded visual boundary boxes matching the exact user diagram */
+  function drawMappedBoundaries(canvas, boundaries, options) {
+    if (!canvas || !boundaries) return;
+    var ctx = canvas.getContext ? canvas.getContext('2d') : canvas;
+    var opts = options || {};
+    var showLabels = opts.showLabels !== false;
+    var selectedOption = opts.selectedOption || 4;
+
+    var defs = [
+      { key: 'figA', label: 'Figure A', tag: 'A', color: '#ff4055', bg: 'rgba(255, 64, 85, 0.08)' },
+      { key: 'figB', label: 'Figure B', tag: 'B', color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.08)' },
+      { key: 'figC', label: 'Figure C', tag: 'C', color: '#ff9800', bg: 'rgba(255, 152, 0, 0.08)' },
+      { key: 'chooseD', label: 'Choose D (Area)', tag: 'Choose D', color: '#facc15', bg: 'rgba(250, 204, 21, 0.06)' },
+      { key: 'option' + selectedOption, label: 'Option ' + selectedOption, tag: 'Opt ' + selectedOption, color: '#a855f7', bg: 'rgba(168, 85, 247, 0.12)' },
+      { key: 'hints', label: 'Hints Panel', tag: 'Hints', color: '#22c55e', bg: 'rgba(34, 197, 94, 0.06)' }
+    ];
+
+    ctx.save();
+    defs.forEach(function (d) {
+      var b = boundaries[d.key];
+      if (!b || !b.width || !b.height) return;
+
+      var x = b.x, y = b.y, w = b.width, h = b.height;
+      var radius = 12;
+
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + w - radius, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
+      ctx.lineTo(x + w, y + h - radius);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+      ctx.lineTo(x + radius, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+
+      ctx.fillStyle = d.bg;
+      ctx.fill();
+
+      ctx.strokeStyle = d.color;
+      ctx.lineWidth = 2.5;
+      ctx.shadowColor = d.color;
+      ctx.shadowBlur = 8;
+      ctx.stroke();
+
+      if (showLabels) {
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = d.color;
+        var badgeH = 18;
+        var badgeW = Math.max(32, d.tag.length * 8 + 12);
+        if (ctx.roundRect) {
+          ctx.beginPath();
+          ctx.roundRect(x + 6, Math.max(2, y - 9), badgeW, badgeH, 4);
+          ctx.fill();
+        } else {
+          ctx.fillRect(x + 6, Math.max(2, y - 9), badgeW, badgeH);
+        }
+
+        ctx.fillStyle = '#0a0a0f';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(d.tag, x + 6 + badgeW / 2, Math.max(2, y - 9) + badgeH / 2);
+      }
+    });
+    ctx.restore();
   }
 
   /* Render Dwell-Time Heatmap onto a <canvas> */
@@ -342,6 +448,7 @@ var HeatmapEngine = (function () {
   return {
     computeFixations: computeFixations,
     computeAOIMetrics: computeAOIMetrics,
+    drawMappedBoundaries: drawMappedBoundaries,
     renderHeatmap: renderHeatmap,
     renderScanpath: renderScanpath,
     buildPalette: buildPalette
