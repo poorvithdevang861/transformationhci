@@ -19,6 +19,8 @@
       <h1>Researcher <span class="grad">dashboard</span></h1>
     </div>
     <div class="r">
+      <a class="ibtn tb" href="eyetracker.html"><svg class="i" aria-hidden="true"><use href="#i-eye"/></svg>Eye Tracker Studio</a>
+      <button class="ibtn tb" id="exGaze"><svg class="i" aria-hidden="true"><use href="#i-eye"/></svg>Gaze CSV</button>
       <button class="ibtn tb" id="exTrials"><svg class="i" aria-hidden="true"><use href="#i-download"/></svg>Trials CSV</button>
       <button class="ibtn tb" id="exSessions"><svg class="i" aria-hidden="true"><use href="#i-download"/></svg>Sessions CSV</button>
       <button class="ibtn tb" id="exJson"><svg class="i" aria-hidden="true"><use href="#i-code"/></svg>All JSON</button>
@@ -78,11 +80,84 @@
   </section>
 </div>
 
+<!-- Heatmap & Fixation Explorer Dialog -->
+<dialog id="heatDlg" class="heat-dlg">
+  <div class="heat-dlg-body">
+    <div class="edge phead">
+      <div>
+        <div class="eyebrow" id="heatDlgEyebrow">Eye-Tracking &amp; Gaze Heatmaps</div>
+        <h2 class="ptitle" id="heatDlgTitle">Session Heatmap Explorer</h2>
+      </div>
+      <div class="r">
+        <button type="button" class="ibtn" id="closeHeatDlg" aria-label="Close dialog"><svg class="i" aria-hidden="true"><use href="#i-x"/></svg></button>
+      </div>
+    </div>
+
+    <!-- Trial Picker Buttons -->
+    <div class="edge" style="gap:10px;">
+      <div class="lbl">Select Puzzle Trial:</div>
+      <div class="seg" id="heatTrialSeg" style="flex-wrap:wrap;height:auto;max-width:100%;"></div>
+    </div>
+
+    <!-- Heatmap & Analytics Split View -->
+    <div class="heat-modal-grid">
+      <!-- Reconstructed Puzzle Layout with Canvas Overlay -->
+      <div class="heat-view-panel" id="heatViewPanel">
+        <canvas class="heatmap-canvas" id="modalHeatmapCanvas"></canvas>
+        <div id="modalPuzzleContent"></div>
+      </div>
+
+      <!-- Controls & AOI Breakdown -->
+      <div class="heat-side-panel">
+        <div class="panel" style="gap:10px;">
+          <div class="eyebrow">Visualization Mode</div>
+          <div class="seg" role="group" id="mModeSeg" style="width:100%;">
+            <button type="button" class="t" data-mode="heatmap" aria-pressed="true" style="flex:1;justify-content:center;">Heatmap</button>
+            <button type="button" class="t" data-mode="scanpath" aria-pressed="false" style="flex:1;justify-content:center;">Scanpath</button>
+            <button type="button" class="t" data-mode="both" aria-pressed="false" style="flex:1;justify-content:center;">Both</button>
+          </div>
+          <div class="sfield">
+            <div class="edge"><span class="lbl">Heatmap Opacity</span><span class="meta" id="mOpacVal">82%</span></div>
+            <input type="range" id="mOpacSlider" min="15" max="100" value="82" style="accent-color:var(--accent);">
+          </div>
+          <div class="sfield">
+            <div class="edge"><span class="lbl">Dwell Radius</span><span class="meta" id="mRadVal">36px</span></div>
+            <input type="range" id="mRadSlider" min="15" max="75" value="36" style="accent-color:var(--accent);">
+          </div>
+        </div>
+
+        <div class="panel" style="gap:8px;">
+          <div class="eyebrow">Scanpath Chronological Replay</div>
+          <div class="playback-bar">
+            <button type="button" class="ibtn" id="mPlayBtn" aria-label="Play scanpath">
+              <svg class="i sm" aria-hidden="true"><use href="#i-play"/></svg>
+            </button>
+            <input type="range" id="mReplayScrubber" min="0" max="0" value="0">
+            <span class="meta" id="mReplayText" style="font-family:var(--f-mono);">0/0</span>
+          </div>
+        </div>
+
+        <div class="panel" style="gap:8px;">
+          <div class="eyebrow">Area of Interest (AOI) Attention</div>
+          <div class="aoi-list" id="mAoiList"></div>
+        </div>
+
+        <div class="panel" style="gap:8px;">
+          <button type="button" class="ibtn tb" id="mDlPng">
+            <svg class="i" aria-hidden="true"><use href="#i-download"/></svg>Download Heatmap PNG
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</dialog>
+
 <script src="js/engine.js"></script>
 <script src="js/problems.js"></script>
 <script src="js/study/config.js"></script>
 <script src="js/study/store.js"></script>
 <script src="js/study/measures.js"></script>
+<script src="js/study/heatmap.js"></script>
 <script src="js/researcher.js"></script>
 </body>
 </html>

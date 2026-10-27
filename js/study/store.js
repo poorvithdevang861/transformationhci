@@ -52,12 +52,15 @@ var Store = (function () {
     tr.forEach(function (t) { (t.identify || []).forEach(function (q) { ids.push(q.correct ? 1 : 0); }); });
     return {
       id: s.id, createdAt: s.createdAt, mode: s.mode, device: s.device && s.device.type,
+      eyeTracking: !!s.eyeTracking,
+      gazeRecorded: (main.concat(tr)).some(function (t) { return t.gaze && t.gaze.length > 0; }),
       status: s.completedAt ? "complete" : "partial",
       mainDone: main.filter(function (t) { return t.choice != null; }).length,
       accuracy: mean(main.map(function (t) { return t.choice == null ? null : (t.correct ? 1 : 0); })),
       meanTimeS: mean(main.map(function (t) { return t.timeMs == null ? null : t.timeMs / 1000; })),
       meanHints: mean(main.map(function (t) { return t.choice == null ? null : t.hintsUsed; })),
-      meanEffort: mean(main.map(function (t) { return t.effort; })),
+      meanEffort: s.overallEffort != null ? s.overallEffort : mean(main.map(function (t) { return t.effort; })),
+      overallEffort: s.overallEffort,
       transferAcc: mean(tr.map(function (t) { return t.choice == null ? null : (t.correct ? 1 : 0); })),
       identifyAcc: mean(ids),
       tlx: tlxRaw(s.tlx),
@@ -127,7 +130,8 @@ var Store = (function () {
       var m = summarise(s), r = {
         participant: s.id, session_start: s.createdAt, completed_at: s.completedAt, mode: s.mode,
         device: s.device && s.device.type, screen: s.device ? s.device.w + "x" + s.device.h : null, touch: s.device && s.device.touch ? 1 : 0,
-        main_done: m.mainDone, main_accuracy: m.accuracy, mean_time_s: m.meanTimeS, mean_hints: m.meanHints, mean_effort: m.meanEffort,
+        main_done: m.mainDone, main_accuracy: m.accuracy, mean_time_s: m.meanTimeS, mean_hints: m.meanHints,
+        overall_effort_1to9: s.overallEffort != null ? s.overallEffort : m.meanEffort,
         transfer_accuracy: m.transferAcc, identify_accuracy: m.identifyAcc, tlx_raw: m.tlx, agency_mean: m.agency, sus_score: m.sus,
         hint_windows_s: (s.config && s.config.hintWindows || []).join("/")
       };
@@ -137,6 +141,33 @@ var Store = (function () {
       r.comments = s.comments || null;
       return r;
     });
+  }
+
+  function gazeRows(list) {
+    var rows = [];
+    list.forEach(function (s) {
+      (s.trials || []).forEach(function (t) {
+        if (!t.gaze || !t.gaze.length) return;
+        t.gaze.forEach(function (g) {
+          rows.push({
+            participant: s.id, mode: s.mode, phase: "main",
+            puzzle_order: t.n, question_idx: t.idx + 1, condition: t.condition,
+            timestamp_ms: g.t, x: g.x, y: g.y, aoi: g.target || ""
+          });
+        });
+      });
+      (s.transfer || []).forEach(function (t) {
+        if (!t.gaze || !t.gaze.length) return;
+        t.gaze.forEach(function (g) {
+          rows.push({
+            participant: s.id, mode: s.mode, phase: "transfer",
+            puzzle_order: t.n, question_idx: t.idx + 1, condition: "none",
+            timestamp_ms: g.t, x: g.x, y: g.y, aoi: g.target || ""
+          });
+        });
+      });
+    });
+    return rows;
   }
 
   function download(name, text, type) {
@@ -149,6 +180,7 @@ var Store = (function () {
   return {
     all: all, save: save, remove: remove, clear: clear, importMany: importMany,
     TLX_KEYS: TLX_KEYS, susScore: susScore, tlxRaw: tlxRaw, agencyMean: agencyMean, mean: mean,
-    summarise: summarise, byCondition: byCondition, toCsv: toCsv, trialRows: trialRows, sessionRows: sessionRows, download: download
+    summarise: summarise, byCondition: byCondition, toCsv: toCsv, trialRows: trialRows, sessionRows: sessionRows,
+    gazeRows: gazeRows, download: download
   };
 })();

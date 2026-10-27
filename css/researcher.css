@@ -40,6 +40,123 @@ input[type=number] { width: 78px; height: 38px; padding: 0 10px; border-radius: 
 .qp em { font-style: normal; font-size: .7rem; color: var(--faint); font-weight: 500; }
 .qp:has(input:checked) { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--sunken)); color: var(--ink); }
 .qp:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tag.gaze { background: color-mix(in srgb, #ff4055 20%, transparent); color: #ff8576; }
+
+/* Heatmap Modal Dialog */
+dialog.heat-dlg {
+  width: min(1240px, 95vw);
+  max-height: 92vh;
+  background: var(--panel);
+  border: 1px solid var(--line-strong);
+  border-radius: 20px;
+  color: var(--ink);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85);
+  padding: 0;
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+dialog.heat-dlg::backdrop {
+  background: rgba(5, 5, 9, 0.8);
+  backdrop-filter: blur(8px);
+}
+
+.heat-dlg-body {
+  display: flex;
+  flex-direction: column;
+  max-height: 92vh;
+  overflow-y: auto;
+  padding: 20px 24px;
+  gap: 14px;
+}
+
+.heat-modal-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .heat-modal-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+.heat-view-panel {
+  position: relative;
+  background: var(--sunken);
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  padding: 20px;
+  min-height: 480px;
+  overflow: hidden;
+}
+
+.heatmap-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+  border-radius: inherit;
+}
+
+.heat-side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.playback-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--sunken);
+  border-radius: 10px;
+  border: 1px solid var(--line);
+}
+
+.playback-bar input[type="range"] {
+  flex: 1;
+  accent-color: var(--accent);
+}
+
+.aoi-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.aoi-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.aoi-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.aoi-bar-track {
+  width: 100%;
+  height: 7px;
+  border-radius: 99px;
+  background: var(--track);
+  overflow: hidden;
+}
+
+.aoi-bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transition: width 0.3s;
+}
+
 @media (max-width: 900px) {
   .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .settings { grid-template-columns: minmax(0, 1fr); }

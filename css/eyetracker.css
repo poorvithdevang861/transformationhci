@@ -1,0 +1,369 @@
+/* Eye Tracker & Heatmap Studio Styles */
+.eyetracker-shell {
+  max-width: 1360px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: calc(100dvh - 2 * var(--pad));
+}
+
+.studio-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .studio-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Control Bar */
+.control-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.cam-preview-box {
+  width: 110px;
+  height: 82px;
+  background: var(--sunken);
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cam-preview-box video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* mirror */
+}
+
+.cam-preview-box .face-guide {
+  position: absolute;
+  inset: 12px;
+  border: 1.5px dashed var(--accent);
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* Playground Viewport */
+.playground-viewport {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 24px;
+  overflow: hidden;
+  min-height: 480px;
+  box-shadow: var(--shadow);
+}
+
+.heatmap-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+  border-radius: inherit;
+}
+
+.sample-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* Sample Layouts */
+.sample-puzzle {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sample-article {
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.sample-article h2 {
+  font-family: var(--f-display);
+  font-size: 1.8rem;
+  color: var(--ink);
+  margin: 0;
+}
+
+.sample-article .article-hero-img {
+  width: 100%;
+  height: 220px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2a2845, #17162b);
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  font-family: var(--f-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.sample-article .callout-box {
+  padding: 16px 20px;
+  background: var(--sunken);
+  border-left: 4px solid var(--accent);
+  border-radius: 8px;
+  font-style: italic;
+  color: var(--ink);
+}
+
+.sample-article .cta-button {
+  align-self: flex-start;
+  padding: 12px 24px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: var(--accent-ink);
+  font-weight: 700;
+  border: 0;
+  cursor: pointer;
+  box-shadow: 0 8px 20px -6px var(--accent);
+}
+
+/* Product Cards */
+.sample-products {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.product-card {
+  background: var(--sunken);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: transform 0.2s;
+}
+
+.product-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--line-strong);
+}
+
+.product-thumb {
+  width: 100%;
+  height: 140px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #1f1e2f, #141320);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+}
+
+.product-card h3 {
+  font-size: 1.05rem;
+  margin: 0;
+  color: var(--ink);
+}
+
+.product-price {
+  font-family: var(--f-mono);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--ok);
+}
+
+/* Upload Image Preview */
+.upload-target-area {
+  min-height: 380px;
+  border: 2px dashed var(--line-strong);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 30px;
+  text-align: center;
+  background: var(--sunken);
+  cursor: pointer;
+}
+
+.upload-target-area img {
+  max-width: 100%;
+  max-height: 500px;
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+
+/* Sidebar Analytics Panel */
+.sidebar-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.stat-card {
+  background: var(--sunken);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-card .val {
+  font-family: var(--f-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.stat-card .desc {
+  font-size: 0.76rem;
+  color: var(--faint);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* AOI Bars */
+.aoi-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.aoi-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.aoi-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.aoi-bar-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 99px;
+  background: var(--track);
+  overflow: hidden;
+}
+
+.aoi-bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transition: width 0.3s;
+}
+
+/* Player Bar */
+.playback-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--sunken);
+  border-radius: 12px;
+  border: 1px solid var(--line);
+}
+
+.playback-bar input[type="range"] {
+  flex: 1;
+  accent-color: var(--accent);
+}
+
+/* Calibration Modal Overlay */
+.gaze-calib-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 15, 0.95);
+  backdrop-filter: blur(12px);
+  z-index: 100000;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.gaze-calib-head {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.gaze-calib-field {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+}
+
+.gaze-calib-dot {
+  position: absolute;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffea00 30%, #ff8576 80%);
+  border: 3px solid #fff;
+  box-shadow: 0 0 24px rgba(255, 234, 0, 0.9);
+  color: #0b0b10;
+  font-family: var(--f-mono);
+  font-weight: 700;
+  font-size: 1.1rem;
+  display: grid;
+  place-items: center;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  transition: transform 0.15s, background 0.2s, box-shadow 0.2s;
+  animation: pulseDot 1.4s infinite;
+}
+
+.gaze-calib-dot:hover {
+  transform: translate(-50%, -50%) scale(1.15);
+}
+
+.gaze-calib-dot.done {
+  background: radial-gradient(circle, var(--ok) 30%, #208e62 80%);
+  box-shadow: 0 0 24px rgba(69, 214, 154, 0.9);
+  animation: none;
+}
+
+@keyframes pulseDot {
+  0% { box-shadow: 0 0 0 0 rgba(255, 234, 0, 0.7); }
+  70% { box-shadow: 0 0 0 18px rgba(255, 234, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 234, 0, 0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.99); }
+  to { opacity: 1; transform: scale(1); }
+}

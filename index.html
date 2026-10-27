@@ -36,20 +36,20 @@
           <li id="stepTransfer"><span>2</span><div><b id="nTransfer">4 new puzzles, no hints</b><em>Name the transformation you saw.</em></div></li>
           <li><span>3</span><div><b>Three short questionnaires</b><em>Effort, control and ease of use.</em></div></li>
         </ol>
-        <p class="meta wrap">About 15–20 minutes. No camera or microphone is used.</p>
+        <p class="meta wrap">About 15–20 minutes. In-browser laptop camera eye-tracking is active with your consent.</p>
       </div>
 
       <div class="panel setup">
         <div class="field">
           <div class="lbl">Choose how hints are shown</div>
           <div class="modes" role="radiogroup" aria-label="Hint mode">
-            <button class="mode" role="radio" aria-checked="false" data-mode="static">
+            <button type="button" class="mode" role="radio" aria-checked="false" data-mode="static">
               <span class="mi">{icon-text}</span><b>Static</b><em>Figures as images. Hints are text, revealed step by step.</em>
             </button>
-            <button class="mode" role="radio" aria-checked="false" data-mode="animation">
+            <button type="button" class="mode" role="radio" aria-checked="true" data-mode="animation">
               <span class="mi">{icon-anim}</span><b>Animation</b><em>Each hint animates one transformation, with playback controls.</em>
             </button>
-            <button class="mode" role="radio" aria-checked="false" data-mode="randomise">
+            <button type="button" class="mode" role="radio" aria-checked="false" data-mode="randomise">
               <span class="mi">{icon-shuffle}</span><b>Randomise</b><em>Each puzzle gets static or animated hints, balanced across the session.</em>
             </button>
           </div>
@@ -68,18 +68,20 @@
           </div>
         </div>
 
-        <label class="consent">
+        <div class="consent">
           <input type="checkbox" id="consent">
-          <span>I agree to take part. My answers, timings and how I use the hints are stored anonymously on this device for the researcher. I can stop at any time.</span>
-        </label>
+          <label for="consent"><b>Consent to Participate &amp; Record Eye Gaze</b>: I agree to take part in this visual reasoning study and consent to using my laptop camera in-browser to record where I look on the screen during the puzzles. My answers, timings, and gaze coordinates are stored anonymously for the researcher.</label>
+        </div>
 
         <div class="edge">
-          <div class="l"><a class="ibtn tb ghostlink" href="explore.html">{icon-anim}Free practice</a></div>
-          <div class="r"><button class="ibtn tb primary" id="startBtn" disabled>Start{icon-arrow}</button></div>
+          <div class="l"></div>
+          <div class="r"><button type="button" class="ibtn tb primary" id="startBtn" disabled>Start Study &amp; Camera{icon-arrow}</button></div>
         </div>
       </div>
     </div>
-    <footer class="foot"><a href="researcher.html">{icon-chart}Researcher</a></footer>
+    <footer class="foot">
+      <a href="researcher.html">{icon-chart}Researcher Dashboard</a>
+    </footer>
   </section>
 
   <!-- 2 · instructions for the chosen mode -->
@@ -163,6 +165,21 @@
   </section>
 
   <!-- 5 · questionnaires -->
+  <!-- 5.0 · overall mental effort (moved to last) -->
+  <section class="screen" id="sEffort" hidden>
+    <div class="panel narrow form">
+      <div class="eyebrow">Part 3 · Questionnaires</div>
+      <h2 class="ptitle big">Overall mental effort</h2>
+      <p class="lead">How much mental effort did solving the puzzles take overall?</p>
+      <div id="overallEffortScale" style="margin:20px 0;"></div>
+      <div class="edge">
+        <div class="l meta" id="effortMeta">Select a rating from 1 (very low) to 9 (very high)</div>
+        <div class="r"><button class="ibtn tb primary" id="effortNext" disabled>Continue{icon-arrow}</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5.1 · questionnaires -->
   <section class="screen" id="sTLX" hidden>
     <div class="panel narrow form">
       <div class="eyebrow">Part 3 · Workload (NASA-TLX)</div>
@@ -194,32 +211,19 @@
     </div>
   </section>
 
-  <!-- 6 · done -->
+  <!-- 6 · done (reports hidden from participants; available in researcher dashboard) -->
   <section class="screen" id="sDone" hidden>
-    <div class="panel narrow">
-      <div class="done-badge">{icon-check}</div>
-      <h2 class="ptitle big center">Thank you!</h2>
-      <p class="lead center">Your responses are saved on this device.</p>
-      <div class="stats" id="doneStats"></div>
-      <div class="edge">
-        <div class="l"><button class="ibtn tb" id="dlMine">{icon-download}Download my data</button></div>
-        <div class="r"><button class="ibtn tb primary" id="againBtn">{icon-home}New session</button></div>
+    <div class="panel narrow center" style="padding:48px 24px;text-align:center;">
+      <div class="done-badge" style="margin:0 auto 16px;">{icon-check}</div>
+      <h2 class="ptitle big">Study Complete</h2>
+      <p class="lead" style="margin-top:8px;">Thank you for your time and participation! Your responses and eye-tracking recordings have been securely submitted to the researcher.</p>
+      <p class="meta wrap" style="justify-content:center;margin-top:16px;color:var(--faint);">All data has been saved anonymously. You may now close this browser tab.</p>
+      <div style="margin-top:28px;">
+        <button class="ibtn tb" id="againBtn" style="margin:0 auto;">{icon-home}New Session</button>
       </div>
     </div>
   </section>
 </div>
-
-<!-- after each main question: feedback + effort rating -->
-<dialog id="afterDlg" aria-labelledby="afterTitle">
-  <div class="after">
-    <div class="verdict" id="verdict"></div>
-    <div class="effort">
-      <h3 id="afterTitle"></h3>
-      <div id="effortScale"></div>
-    </div>
-    <div class="edge"><div class="l meta" id="afterMeta"></div><div class="r"><button class="ibtn tb primary" id="afterNext" disabled>Next puzzle{icon-arrow}</button></div></div>
-  </div>
-</dialog>
 
 <script src="js/engine.js"></script>
 <script src="js/problems.js"></script>
@@ -227,6 +231,8 @@
 <script src="js/study/store.js"></script>
 <script src="js/study/measures.js"></script>
 <script src="js/study/hints.js"></script>
+<script src="js/study/heatmap.js"></script>
+<script src="js/study/gaze.js"></script>
 <script src="js/study/study.js"></script>
 </body>
 </html>

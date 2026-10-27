@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Eye Tracker & Heatmap Studio · Transformation Animator</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<meta name="theme-color" content="#0a0a0f">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/eyetracker.css">
+</head>
+<body>
+<script src="js/icons.js"></script>
+
+<div class="eyetracker-shell">
+  <!-- Top Navigation & Branding -->
+  <header class="edge">
+    <div class="l">
+      <a class="ibtn" href="index.html" aria-label="Home Study"><svg class="i" aria-hidden="true"><use href="#i-home"/></svg></a>
+      <h1>Eye Tracker <span class="grad">& Heatmap Studio</span></h1>
+    </div>
+    <div class="r">
+      <span class="pill" id="camStatusChip"><svg class="i" aria-hidden="true"><use href="#i-eye"/></svg><span id="camStatusText">Camera: Ready to Connect</span></span>
+      <a class="ibtn tb" href="researcher.html"><svg class="i" aria-hidden="true"><use href="#i-chart"/></svg>Researcher Dashboard</a>
+      <a class="ibtn tb" href="explore.html"><svg class="i" aria-hidden="true"><use href="#i-anim"/></svg>Practice Puzzles</a>
+    </div>
+  </header>
+
+  <!-- Top Action & Calibration Toolbar -->
+  <section class="control-bar">
+    <div class="l">
+      <!-- Webcam Mini Preview & Guide -->
+      <div class="cam-preview-box" id="camPreviewBox" title="Center your face inside the circle for accurate gaze tracking">
+        <video id="webcamVideo" autoplay muted playsinline></video>
+        <div class="face-guide"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <div class="edge" style="gap:8px;">
+          <button type="button" class="ibtn tb primary" id="connectCamBtn">
+            <svg class="i" aria-hidden="true"><use href="#i-eye"/></svg>Connect Laptop Camera
+          </button>
+          <button type="button" class="ibtn tb" id="calibrateBtn" disabled>
+            <svg class="i" aria-hidden="true"><use href="#i-q"/></svg>9-Point Calibration
+          </button>
+        </div>
+        <div class="meta" id="trackStatusMeta">Camera is offline · Click "Connect Laptop Camera" to begin</div>
+      </div>
+    </div>
+
+    <div class="r">
+      <label class="chk" style="font-size:0.82rem;">
+        <input type="checkbox" id="showGazeDotChk"> Show Live Eye Dot
+      </label>
+      <div class="vsep"></div>
+      <!-- Record Action Button -->
+      <button type="button" class="ibtn tb primary" id="recordBtn" style="min-width:160px;background:linear-gradient(135deg, #ff4055, #ff8576);color:#fff;">
+        <svg class="i" aria-hidden="true"><use href="#i-start"/></svg><span id="recordBtnText">Start Recording Gaze</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Template Selector Tabs -->
+  <div class="edge" style="padding:0 4px;">
+    <div class="seg" role="tablist" id="templateTabs">
+      <button type="button" class="t" data-tab="puzzle" aria-pressed="true">
+        <svg class="i" aria-hidden="true"><use href="#i-shapes"/></svg>Visual Reasoning Puzzle
+      </button>
+      <button type="button" class="t" data-tab="article" aria-pressed="false">
+        <svg class="i" aria-hidden="true"><use href="#i-text"/></svg>Web Article
+      </button>
+      <button type="button" class="t" data-tab="products" aria-pressed="false">
+        <svg class="i" aria-hidden="true"><use href="#i-shapes"/></svg>Product Cards
+      </button>
+      <button type="button" class="t" data-tab="upload" aria-pressed="false">
+        <svg class="i" aria-hidden="true"><use href="#i-image"/></svg>Custom Screenshot
+      </button>
+    </div>
+    <div class="meta" id="recTimerText" style="font-family:var(--f-mono);font-size:0.9rem;font-weight:600;">00:00</div>
+  </div>
+
+  <!-- Main Studio Grid -->
+  <div class="studio-grid">
+    <!-- Center / Left: Interactive Viewport with Canvas Heatmap Overlay -->
+    <div class="playground-viewport" id="viewportArea">
+      <!-- Heatmap & Scanpath Canvas Overlay -->
+      <canvas class="heatmap-canvas" id="heatmapCanvas"></canvas>
+
+      <!-- Template 1: Visual Reasoning Puzzle -->
+      <div class="sample-content sample-puzzle" id="tmplPuzzle">
+        <div class="eyebrow">Puzzle Demonstration</div>
+        <h2 class="ptitle">Look across the figures: A turns into B, what does C turn into?</h2>
+        <div class="figs svg" id="demoFigs" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;"></div>
+        <div class="choose" style="margin-top:12px;">
+          <div class="lbl">Answer Candidates (Option 1 to 4)</div>
+          <div class="opts4" id="demoOpts"></div>
+        </div>
+      </div>
+
+      <!-- Template 2: Web Article -->
+      <div class="sample-content sample-article" id="tmplArticle" style="display:none;">
+        <span class="pill" style="align-self:flex-start;">HCI & Human Factors</span>
+        <h2>How Animated Micro-Interactions Influence Visual Attention and Cognitive Load</h2>
+        <p class="lead">Eye-tracking studies demonstrate that smooth continuous animations act as attentional beacons, guiding user saccades while minimizing working memory overhead.</p>
+        <div class="article-hero-img" id="aoiHeroImg">Featured Interactive Illustration</div>
+        <p>In traditional problem-solving interfaces, static explanations force users to split their attention between distant textual legends and diagrammatic figures. This "split-attention effect" increases extraneous cognitive load and slows down comprehension.</p>
+        <div class="callout-box" id="aoiCallout">
+          "By decomposing complex spatial changes into discrete, sequential motion cues, animated transitions reduce mental rotation effort by up to 43%."
+        </div>
+        <p>Gaze-contingent analytics enable researchers to map dwell times directly to interface widgets, uncovering which design elements capture initial fixations versus which are completely overlooked.</p>
+        <button type="button" class="cta-button" id="aoiCtaBtn">Explore Research Methodology &rarr;</button>
+      </div>
+
+      <!-- Template 3: Product Cards -->
+      <div class="sample-content sample-products" id="tmplProducts" style="display:none;">
+        <div class="product-card" id="aoiProd1">
+          <div class="product-thumb">Pro Display Stand</div>
+          <h3>Ergonomic Eye-Level Stand</h3>
+          <div class="meta">⭐️ 4.9 (128 reviews)</div>
+          <div class="product-price">$89.00</div>
+          <button type="button" class="ibtn tb primary" style="width:100%;justify-content:center;">Add to Cart</button>
+        </div>
+        <div class="product-card" id="aoiProd2">
+          <div class="product-thumb" style="background:linear-gradient(135deg,#2f1e29,#1d1320);">Wireless Sensor Mouse</div>
+          <h3>Ultra Precision Tracking Mouse</h3>
+          <div class="meta">⭐️ 4.8 (340 reviews)</div>
+          <div class="product-price">$69.00</div>
+          <button type="button" class="ibtn tb primary" style="width:100%;justify-content:center;">Add to Cart</button>
+        </div>
+        <div class="product-card" id="aoiProd3">
+          <div class="product-thumb" style="background:linear-gradient(135deg,#1e2f2a,#13201a);">Mechanical Keyboard</div>
+          <h3>Low-Profile Tactile Keyboard</h3>
+          <div class="meta">⭐️ 5.0 (89 reviews)</div>
+          <div class="product-price">$129.00</div>
+          <button type="button" class="ibtn tb primary" style="width:100%;justify-content:center;">Add to Cart</button>
+        </div>
+      </div>
+
+      <!-- Template 4: Custom Image Upload -->
+      <div class="sample-content" id="tmplUpload" style="display:none;">
+        <label class="upload-target-area" id="uploadArea">
+          <input type="file" id="uploadInput" accept="image/*" hidden>
+          <svg class="i" style="width:40px;height:40px;color:var(--accent);"><use href="#i-image"/></svg>
+          <div style="font-weight:600;font-size:1.05rem;">Click to upload any web screenshot or image</div>
+          <div class="meta">PNG, JPG, WebP supported · Test eye gaze on your own interface</div>
+          <img id="customImagePreview" style="display:none;" alt="Uploaded web screenshot">
+        </label>
+      </div>
+    </div>
+
+    <!-- Right Sidebar: Controls & Live AOI Analytics -->
+    <div class="sidebar-panel">
+      <!-- Heatmap Render Controls -->
+      <div class="panel" style="gap:12px;">
+        <div class="eyebrow">Visualization Controls</div>
+        <div class="sfield">
+          <div class="lbl">Display Mode</div>
+          <div class="seg" role="group" id="viewModeSeg" style="width:100%;">
+            <button type="button" class="t" data-mode="heatmap" aria-pressed="true" style="flex:1;justify-content:center;">Heatmap</button>
+            <button type="button" class="t" data-mode="scanpath" aria-pressed="false" style="flex:1;justify-content:center;">Scanpath</button>
+            <button type="button" class="t" data-mode="both" aria-pressed="false" style="flex:1;justify-content:center;">Both</button>
+          </div>
+        </div>
+        <div class="sfield">
+          <div class="edge"><span class="lbl">Heatmap Opacity</span><span class="meta" id="opacVal">80%</span></div>
+          <input type="range" id="opacSlider" min="10" max="100" value="80" style="accent-color:var(--accent);">
+        </div>
+        <div class="sfield">
+          <div class="edge"><span class="lbl">Dwell Radius (Blur)</span><span class="meta" id="radVal">38px</span></div>
+          <input type="range" id="radSlider" min="15" max="80" value="38" style="accent-color:var(--accent);">
+        </div>
+        <div class="sfield">
+          <div class="edge"><span class="lbl">Min Dwell Cutoff</span><span class="meta" id="dwellVal">0 ms</span></div>
+          <input type="range" id="dwellSlider" min="0" max="400" step="20" value="0" style="accent-color:var(--accent);">
+        </div>
+      </div>
+
+      <!-- Scanpath Chronological Replay Player -->
+      <div class="panel" style="gap:10px;">
+        <div class="eyebrow">Fixation Replay</div>
+        <div class="playback-bar">
+          <button type="button" class="ibtn" id="playBtn" aria-label="Play/Pause scanpath replay">
+            <svg class="i sm" aria-hidden="true"><use href="#i-play"/></svg>
+          </button>
+          <input type="range" id="replayScrubber" min="0" max="0" value="0" disabled>
+          <span class="meta" id="replayStepText" style="font-family:var(--f-mono);">0/0</span>
+        </div>
+        <div class="edge">
+          <span class="lbl">Speed</span>
+          <div class="seg" id="speedSeg">
+            <button type="button" class="t" data-speed="0.5" aria-pressed="false">0.5×</button>
+            <button type="button" class="t" data-speed="1" aria-pressed="true">1×</button>
+            <button type="button" class="t" data-speed="2" aria-pressed="false">2×</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Area of Interest (AOI) Dwell Time Breakdown -->
+      <div class="panel" style="gap:10px;">
+        <div class="eyebrow">Area of Interest (AOI) Breakdown</div>
+        <div class="aoi-list" id="aoiList">
+          <div class="meta wrap" style="color:var(--faint);">No gaze recording yet. Click "Start Recording Gaze" above to track eye dwell times.</div>
+        </div>
+      </div>
+
+      <!-- Export Actions -->
+      <div class="panel" style="gap:8px;">
+        <div class="eyebrow">Export Analytics</div>
+        <button type="button" class="ibtn tb" id="exportPngBtn" disabled>
+          <svg class="i" aria-hidden="true"><use href="#i-download"/></svg>Export Heatmap Image (PNG)
+        </button>
+        <button type="button" class="ibtn tb" id="exportCsvBtn" disabled>
+          <svg class="i" aria-hidden="true"><use href="#i-download"/></svg>Export Gaze Samples (CSV)
+        </button>
+        <button type="button" class="ibtn tb" id="exportJsonBtn" disabled>
+          <svg class="i" aria-hidden="true"><use href="#i-code"/></svg>Export Session Data (JSON)
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/engine.js"></script>
+<script src="js/problems.js"></script>
+<script src="js/study/heatmap.js"></script>
+<script src="js/study/gaze.js"></script>
+<script>
+(function() {
+  'use strict';
+  var $ = function(id) { return document.getElementById(id); };
+
+  var canvas = $('heatmapCanvas');
+  var viewport = $('viewportArea');
+  var isRecording = false;
+  var recTimer = null;
+  var recStartTime = 0;
+  var activeTab = 'puzzle';
+  var lastResult = null;
+  var viewMode = 'heatmap';
+  var replayInterval = null;
+  var replayIndex = 0;
+  var replaySpeed = 1;
+
+  /* Resize canvas to match viewport */
+  function syncCanvasSize() {
+    var rect = viewport.getBoundingClientRect();
+    canvas.width = Math.round(rect.width);
+    canvas.height = Math.round(rect.height);
+    redraw();
+  }
+  window.addEventListener('resize', syncCanvasSize);
+
+  /* Render Visual Reasoning demo figures */
+  function setupDemoPuzzle() {
+    var set = SETS[0], idx = 0, spec = TA.parseSpec(set.specs[idx]);
+    var figsEl = $('demoFigs'), optsEl = $('demoOpts');
+    figsEl.className = "figs svg";
+    figsEl.innerHTML = ["A", "B", "C", "D"].map(function (L) {
+      return '<div class="fig' + (L === "B" ? " target" : L === "D" ? " answer" : "") + '"><svg class="box" viewBox="0 0 100 100" role="img" aria-label="Figure ' + L + '"></svg><span class="flab">' + L + "</span></div>";
+    }).join("");
+    var svgs = figsEl.querySelectorAll("svg");
+    [0, 1, 2].forEach(function (i) {
+      var f = TA.figure(svgs[i], i < 2 ? spec.A : spec.C);
+      [0, 1].forEach(function (s) { f.place(s, i === 1 ? TA.paramsAt(TA.shapeOps(spec, s), 1) : TA.params(TA.NONE, 0)); });
+    });
+    var qm = TA.el("text", { x: 50, y: 50, "class": "qmark" }, svgs[3]); qm.textContent = "?";
+
+    optsEl.innerHTML = "";
+    optsEl.style.setProperty("--img", TA.sheetUrl(set, idx));
+    [0, 1, 2, 3].forEach(function (n) {
+      var cell = document.createElement("div"); cell.className = "cell";
+      var b = document.createElement("button"); b.className = "opt"; b.type = "button";
+      b.setAttribute("role", "radio"); b.setAttribute("aria-checked", "false"); b.setAttribute("aria-label", "Option " + (n + 1));
+      b.style.backgroundPosition = TA.optionCropPosition(n);
+      var cap = document.createElement("div"); cap.className = "cap";
+      cap.innerHTML = "<span><b>" + (n + 1) + '</b></span><span class="mk"></span>';
+      b.onclick = function () {
+        optsEl.querySelectorAll(".opt").forEach(function (o) { o.setAttribute("aria-checked", o === b); });
+        b.setAttribute("aria-checked", "true");
+      };
+      cell.appendChild(b); cell.appendChild(cap); optsEl.appendChild(cell);
+    });
+  }
+  setupDemoPuzzle();
+  setTimeout(syncCanvasSize, 100);
+
+  /* Tab switching */
+  $('templateTabs').addEventListener('click', function(e) {
+    var b = e.target.closest('button');
+    if (!b) return;
+    activeTab = b.dataset.tab;
+    $('templateTabs').querySelectorAll('button').forEach(function(btn) {
+      btn.setAttribute('aria-pressed', btn === b);
+    });
+    ['tmplPuzzle', 'tmplArticle', 'tmplProducts', 'tmplUpload'].forEach(function(id) {
+      $(id).style.display = 'none';
+    });
+    if (activeTab === 'puzzle') $('tmplPuzzle').style.display = 'block';
+    if (activeTab === 'article') $('tmplArticle').style.display = 'block';
+    if (activeTab === 'products') $('tmplProducts').style.display = 'grid';
+    if (activeTab === 'upload') $('tmplUpload').style.display = 'block';
+    setTimeout(syncCanvasSize, 50);
+  });
+
+  /* Image upload handler */
+  $('uploadInput').onchange = function(e) {
+    var file = this.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(evt) {
+      var img = $('customImagePreview');
+      img.src = evt.target.result;
+      img.style.display = 'block';
+      setTimeout(syncCanvasSize, 100);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  /* Camera connection */
+  $('connectCamBtn').onclick = function() {
+    $('trackStatusMeta').textContent = 'Connecting to laptop webcam...';
+    $('camStatusText').textContent = 'Connecting...';
+    GazeTracker.init({
+      onReady: function(res) {
+        if (res.camera) {
+          $('camStatusChip').className = 'pill ok';
+          $('camStatusText').textContent = 'Camera: Active';
+          $('trackStatusMeta').textContent = 'Webcam active · Calibrate for best accuracy';
+          $('calibrateBtn').disabled = false;
+
+          // Attach webcam stream to preview video
+          if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240 } })
+              .then(function(stream) {
+                $('webcamVideo').srcObject = stream;
+              }).catch(function() {});
+          }
+        } else {
+          $('camStatusChip').className = 'pill';
+          $('camStatusText').textContent = 'Simulation Mode (Mouse)';
+          $('trackStatusMeta').textContent = 'Running in simulation mode (Mouse tracking). Full eye-tracking ready when camera is granted.';
+          $('calibrateBtn').disabled = false;
+        }
+      }
+    });
+  };
+
+  /* 9-Point Calibration */
+  $('calibrateBtn').onclick = function() {
+    GazeTracker.createCalibrationModal(document.body, function(success) {
+      if (success) {
+        $('trackStatusMeta').textContent = 'Calibrated successfully! Ready to record gaze.';
+      } else {
+        $('trackStatusMeta').textContent = 'Calibration skipped.';
+      }
+    });
+  };
+
+  /* Show gaze dot */
+  $('showGazeDotChk').onchange = function() {
+    GazeTracker.setShowGazeDot(this.checked);
+  };
+
+  /* Recording logic */
+  $('recordBtn').onclick = function() {
+    if (!isRecording) {
+      // Start Recording
+      isRecording = true;
+      $('recordBtn').style.background = '#ff4055';
+      $('recordBtnText').textContent = 'Stop & Render Heatmap';
+      $('recTimerText').style.color = '#ff4055';
+      recStartTime = performance.now();
+      recTimer = setInterval(function() {
+        var elapsedSec = Math.floor((performance.now() - recStartTime) / 1000);
+        var m = String(Math.floor(elapsedSec / 60)).padStart(2, '0');
+        var s = String(elapsedSec % 60).padStart(2, '0');
+        $('recTimerText').textContent = m + ':' + s;
+      }, 500);
+
+      // Clear previous canvas
+      var ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      GazeTracker.startRecording();
+    } else {
+      // Stop Recording & Compute
+      isRecording = false;
+      clearInterval(recTimer);
+      $('recordBtn').style.background = 'linear-gradient(135deg, #ff4055, #ff8576)';
+      $('recordBtnText').textContent = 'Start Recording Gaze';
+      $('recTimerText').style.color = 'var(--ink)';
+
+      lastResult = GazeTracker.stopRecording();
+      processAndRender(lastResult);
+    }
+  };
+
+  /* Process result, update AOI UI, and render */
+  function processAndRender(result) {
+    if (!result || !result.samples.length) {
+      alert('No gaze samples recorded. Look at the screen and try again.');
+      return;
+    }
+
+    // Enable exports
+    $('exportPngBtn').disabled = false;
+    $('exportCsvBtn').disabled = false;
+    $('exportJsonBtn').disabled = false;
+
+    // Enable replay scrubber
+    $('replayScrubber').disabled = false;
+    $('replayScrubber').max = result.fixations.length;
+    $('replayScrubber').value = result.fixations.length;
+    $('replayStepText').textContent = result.fixations.length + '/' + result.fixations.length;
+
+    // Render AOI cards
+    renderAOICards(result.aoiMetrics);
+
+    // Redraw canvas
+    redraw();
+  }
+
+  function renderAOICards(aoiMetrics) {
+    var listEl = $('aoiList');
+    listEl.innerHTML = '';
+    if (!aoiMetrics) return;
+
+    var keys = Object.keys(aoiMetrics);
+    keys.sort(function(a, b) { return aoiMetrics[b].dwellTimeMs - aoiMetrics[a].dwellTimeMs; });
+
+    keys.forEach(function(key) {
+      var m = aoiMetrics[key];
+      if (m.dwellTimeMs === 0) return;
+      var sec = (m.dwellTimeMs / 1000).toFixed(1);
+      var item = document.createElement('div');
+      item.className = 'aoi-item';
+      item.innerHTML =
+        '<div class="aoi-header">' +
+          '<span>' + m.name + '</span>' +
+          '<span style="font-family:var(--f-mono);color:var(--accent);">' + sec + 's (' + m.pctTotal + '%)</span>' +
+        '</div>' +
+        '<div class="aoi-bar-track">' +
+          '<div class="aoi-bar-fill" style="width:' + m.pctTotal + '%;"></div>' +
+        '</div>';
+      listEl.appendChild(item);
+    });
+
+    if (!listEl.children.length) {
+      listEl.innerHTML = '<div class="meta">Gaze recorded across general canvas.</div>';
+    }
+  }
+
+  function redraw() {
+    if (!lastResult) return;
+    var opacity = +$('opacSlider').value / 100;
+    var radius = +$('radSlider').value;
+    var minDwell = +$('dwellSlider').value;
+    var scrubStep = +$('replayScrubber').value || lastResult.fixations.length;
+
+    // Clear canvas
+    var ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Viewport bounding offset relative to window
+    var vRect = viewport.getBoundingClientRect();
+    var adjustedSamples = lastResult.samples.map(function(s) {
+      return { t: s.t, x: s.x - vRect.left, y: s.y - vRect.top, target: s.target };
+    });
+    var adjustedFixations = lastResult.fixations.map(function(f) {
+      return { id: f.id, t: f.t, x: f.x - vRect.left, y: f.y - vRect.top, duration: f.duration, target: f.target };
+    });
+
+    if (viewMode === 'heatmap' || viewMode === 'both') {
+      HeatmapEngine.renderHeatmap(canvas, adjustedFixations, {
+        width: canvas.width,
+        height: canvas.height,
+        radius: radius,
+        opacity: opacity,
+        minDwell: minDwell
+      });
+    }
+
+    if (viewMode === 'scanpath' || viewMode === 'both') {
+      HeatmapEngine.renderScanpath(canvas, adjustedFixations, {
+        width: canvas.width,
+        height: canvas.height,
+        maxStep: scrubStep,
+        showDwell: true,
+        keepHeatmap: (viewMode === 'both')
+      });
+    }
+  }
+
+  /* Sliders & View Mode */
+  $('viewModeSeg').addEventListener('click', function(e) {
+    var b = e.target.closest('button');
+    if (!b) return;
+    viewMode = b.dataset.mode;
+    $('viewModeSeg').querySelectorAll('button').forEach(function(btn) {
+      btn.setAttribute('aria-pressed', btn === b);
+    });
+    redraw();
+  });
+
+  $('opacSlider').oninput = function() {
+    $('opacVal').textContent = this.value + '%';
+    redraw();
+  };
+  $('radSlider').oninput = function() {
+    $('radVal').textContent = this.value + 'px';
+    redraw();
+  };
+  $('dwellSlider').oninput = function() {
+    $('dwellVal').textContent = this.value + ' ms';
+    redraw();
+  };
+
+  /* Replay Scrubber & Player */
+  $('replayScrubber').oninput = function() {
+    $('replayStepText').textContent = this.value + '/' + this.max;
+    redraw();
+  };
+
+  $('speedSeg').addEventListener('click', function(e) {
+    var b = e.target.closest('button');
+    if (!b) return;
+    replaySpeed = +b.dataset.speed;
+    $('speedSeg').querySelectorAll('button').forEach(function(btn) {
+      btn.setAttribute('aria-pressed', btn === b);
+    });
+  });
+
+  $('playBtn').onclick = function() {
+    if (replayInterval) {
+      clearInterval(replayInterval);
+      replayInterval = null;
+      $('playBtn').innerHTML = '<svg class="i sm"><use href="#i-play"/></svg>';
+      return;
+    }
+    if (!lastResult || !lastResult.fixations.length) return;
+
+    $('playBtn').innerHTML = '<svg class="i sm"><use href="#i-pause"/></svg>';
+    if (+$('replayScrubber').value >= lastResult.fixations.length) {
+      $('replayScrubber').value = 0;
+    }
+
+    var total = lastResult.fixations.length;
+    var stepDelay = Math.round(500 / replaySpeed);
+    replayInterval = setInterval(function() {
+      var cur = +$('replayScrubber').value;
+      if (cur >= total) {
+        clearInterval(replayInterval);
+        replayInterval = null;
+        $('playBtn').innerHTML = '<svg class="i sm"><use href="#i-play"/></svg>';
+      } else {
+        $('replayScrubber').value = cur + 1;
+        $('replayStepText').textContent = (cur + 1) + '/' + total;
+        redraw();
+      }
+    }, stepDelay);
+  };
+
+  /* Exports */
+  $('exportPngBtn').onclick = function() {
+    if (!lastResult) return;
+    var link = document.createElement('a');
+    link.download = 'gaze-heatmap-' + Date.now() + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  };
+
+  $('exportCsvBtn').onclick = function() {
+    if (!lastResult || !lastResult.samples.length) return;
+    var csv = 'timestamp_ms,x,y,target_aoi\n' +
+      lastResult.samples.map(function(s) {
+        return s.t + ',' + s.x + ',' + s.y + ',"' + (s.target || '') + '"';
+      }).join('\n');
+    var blob = new Blob([csv], { type: 'text/csv' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'gaze-samples-' + Date.now() + '.csv';
+    a.click();
+  };
+
+  $('exportJsonBtn').onclick = function() {
+    if (!lastResult) return;
+    var blob = new Blob([JSON.stringify(lastResult, null, 2)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'gaze-session-' + Date.now() + '.json';
+    a.click();
+  };
+
+})();
+</script>
+</body>
+</html>
