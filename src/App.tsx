@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Header, AppView } from './components/common/Header';
-import { BottomCutout } from './components/common/BottomCutout';
+import { LandingBackground } from './components/common/LandingBackground';
 import { StudyContainer } from './features/study/StudyContainer';
 import { ResearcherDashboard } from './features/researcher/ResearcherDashboard';
 
@@ -28,6 +28,9 @@ const getInitialView = (): AppView => {
 export const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>(getInitialView);
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
+  const [isStudyLanding, setIsStudyLanding] = useState(true);
+
+  const isLandingPage = currentView === 'study' && isStudyLanding;
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -44,18 +47,26 @@ export const App: React.FC = () => {
       <div className="shell" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1 }}>
         <Header
           currentView={currentView}
-          onNavigate={setCurrentView}
+          onNavigate={(view) => {
+            setCurrentView(view);
+            if (view !== 'study') setIsStudyLanding(false);
+          }}
           theme={theme}
           onToggleTheme={handleToggleTheme}
         />
 
         <main style={{ flex: 1 }}>
-          {currentView === 'study' && <StudyContainer onNavigate={setCurrentView} />}
+          {currentView === 'study' && (
+            <StudyContainer
+              onNavigate={setCurrentView}
+              onStepChange={setIsStudyLanding}
+            />
+          )}
           {currentView === 'researcher' && <ResearcherDashboard />}
         </main>
       </div>
 
-      <BottomCutout />
+      {isLandingPage && <LandingBackground />}
     </>
   );
 };

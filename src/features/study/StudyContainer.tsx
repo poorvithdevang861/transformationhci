@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ExperimentSession, TrialData } from '../../core/storage/types';
 import { LocalStore } from '../../core/storage/local-store';
 import { saveResultsToServer } from '../../core/storage/api-client';
@@ -16,15 +16,20 @@ import { AppView } from '../../components/common/Header';
 
 interface StudyContainerProps {
   onNavigate: (view: AppView) => void;
+  onStepChange?: (isLanding: boolean) => void;
 }
 
 type StudyStep = 'welcome' | 'intro' | 'trial' | 'effort' | 'tlx' | 'agency' | 'sus' | 'done';
 
-export const StudyContainer: React.FC<StudyContainerProps> = ({ onNavigate }) => {
+export const StudyContainer: React.FC<StudyContainerProps> = ({ onNavigate, onStepChange }) => {
   const [step, setStep] = useState<StudyStep>('welcome');
   const [session, setSession] = useState<ExperimentSession | null>(null);
   const [trialIndex, setTrialIndex] = useState(0);
   const [trialStartTime, setTrialStartTime] = useState(0);
+
+  useEffect(() => {
+    onStepChange?.(step === 'welcome');
+  }, [step, onStepChange]);
 
   const config = LocalStore.getConfig();
   const mainQuestions = config.mainQuestions;
