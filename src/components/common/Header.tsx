@@ -7,9 +7,17 @@ interface HeaderProps {
   currentView: AppView;
   onNavigate: (view: AppView) => void;
   statusChip?: React.ReactNode;
+  theme: 'dark' | 'light';
+  onToggleTheme: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate, statusChip }) => {
+export const Header: React.FC<HeaderProps> = ({
+  currentView,
+  onNavigate,
+  statusChip,
+  theme,
+  onToggleTheme
+}) => {
   return (
     <header
       className="edge app-header"
@@ -83,6 +91,16 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate, statusC
         >
           <Icon name="i-chart" size="sm" />
           <span>Researcher</span>
+        </button>
+        <button
+          type="button"
+          className="ibtn tb"
+          onClick={onToggleTheme}
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          style={{ width: '34px', height: '34px', padding: 0, borderRadius: '8px', justifyContent: 'center' }}
+        >
+          <Icon name={theme === 'dark' ? 'i-sun' : 'i-moon'} size="sm" />
         </button>
       </div>
     </header>

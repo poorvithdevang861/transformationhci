@@ -3,12 +3,13 @@
    Theme: Calibrated Laboratory Dark (Graphite Ramp, High Contrast, Quiet Chrome)
    ========================================================================== */
 
-:root {
+:root,
+[data-theme="dark"] {
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
   color-scheme: dark;
 
-  /* Graphite neutral ramp */
+  /* Graphite neutral ramp (Dark mode) */
   --bg: #131315;
   --panel: #18181b;
   --raised: #222226;
@@ -33,6 +34,15 @@
   --hint: #f59e0b;
   --hint-soft: #231c10;
 
+  /* Primary button tokens */
+  --primary-bg: #ededed;
+  --primary-ink: #111113;
+  --primary-bg-hover: #ffffff;
+  --primary-ink-hover: #000000;
+
+  /* Modals / Dialogs */
+  --backdrop: rgba(8, 8, 10, 0.75);
+
   /* Shadows and hairlines */
   --edge: rgba(255, 255, 255, 0.05);
   --shadow: 0 16px 36px -18px rgba(0, 0, 0, 0.6);
@@ -49,6 +59,64 @@
 
   /* Sprite sheet filter for dark canvas */
   --sheet-filter: invert(0.92) hue-rotate(180deg) sepia(0.06);
+
+  /* Bottom cutout decoration tokens */
+  --cutout-opacity: 0.16;
+  --cutout-filter: invert(0.92) contrast(1.15) brightness(0.85);
+  --cutout-blend: screen;
+  --cutout-svg-opacity: 0.07;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* Graphite neutral ramp (Light mode) */
+  --bg: #f8f9fa;
+  --panel: #ffffff;
+  --raised: #f1f3f5;
+  --sunken: #f8f9fa;
+  --track: #e9ecef;
+  --chip: #e2e8f0;
+  --line: rgba(15, 23, 42, 0.09);
+  --line-strong: rgba(15, 23, 42, 0.18);
+
+  /* Typography roles (Light - high contrast WCAG AAA) */
+  --ink: #18181b;
+  --muted: #52525b;
+  --faint: #71717a;
+
+  /* Restrained accent */
+  --accent: #4f46e5;
+  --accent-ink: #ffffff;
+
+  /* Semantic markers */
+  --ok: #16a34a;
+  --bad: #dc2626;
+  --hint: #d97706;
+  --hint-soft: #fef3c7;
+
+  /* Primary button tokens */
+  --primary-bg: #18181b;
+  --primary-ink: #ffffff;
+  --primary-bg-hover: #000000;
+  --primary-ink-hover: #ffffff;
+
+  /* Modals / Dialogs */
+  --backdrop: rgba(15, 23, 42, 0.45);
+
+  /* Shadows and hairlines */
+  --edge: rgba(0, 0, 0, 0.04);
+  --shadow: 0 12px 28px -12px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.04);
+
+  /* Sprite sheet filter for light canvas: none */
+  --sheet-filter: none;
+
+  /* Bottom cutout decoration tokens */
+  --cutout-opacity: 0.22;
+  --cutout-filter: contrast(1.1) brightness(0.95);
+  --cutout-blend: multiply;
+  --cutout-svg-opacity: 0.05;
 }
 
 html {
@@ -210,8 +278,8 @@ button {
 }
 
 .ibtn.primary {
-  background: var(--ink);
-  color: #111113;
+  background: var(--primary-bg);
+  color: var(--primary-ink);
   font-weight: 600;
   border: 1px solid transparent;
   padding: 0 16px;
@@ -219,13 +287,13 @@ button {
 }
 
 .ibtn.primary:hover:not(:disabled) {
-  background: #ffffff;
-  color: #000000;
+  background: var(--primary-bg-hover);
+  color: var(--primary-ink-hover);
 }
 
 .ibtn.tb {
   border: 1px solid var(--line);
-  background: var(--sunken);
+  background: var(--panel);
   padding: 0 14px;
   font-size: 0.84rem;
   font-weight: 500;
@@ -239,14 +307,14 @@ button {
 
 .ibtn.primary.tb {
   border: 1px solid transparent;
-  background: var(--ink);
-  color: #111113;
+  background: var(--primary-bg);
+  color: var(--primary-ink);
   font-weight: 600;
 }
 
 .ibtn.primary.tb:hover:not(:disabled) {
-  background: #ffffff;
-  color: #000000;
+  background: var(--primary-bg-hover);
+  color: var(--primary-ink-hover);
 }
 
 .ibtn.danger,
@@ -539,7 +607,7 @@ dialog {
 }
 
 dialog::backdrop {
-  background: rgba(8, 8, 10, 0.75);
+  background: var(--backdrop);
   backdrop-filter: blur(4px);
 }
 

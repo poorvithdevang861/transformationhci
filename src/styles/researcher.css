@@ -272,7 +272,7 @@ dialog.heat-dlg {
 }
 
 dialog.heat-dlg::backdrop {
-  background: rgba(8, 8, 10, 0.75);
+  background: var(--backdrop);
   backdrop-filter: blur(4px);
 }
 

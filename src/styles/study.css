@@ -481,10 +481,15 @@
 
 .ibtn.hintgo {
   height: 36px;
-  background: var(--ink);
-  color: #111113;
+  background: var(--primary-bg);
+  color: var(--primary-ink);
   padding: 0 14px;
   font-weight: 600;
+}
+
+.ibtn.hintgo:hover:not(:disabled) {
+  background: var(--primary-bg-hover);
+  color: var(--primary-ink-hover);
 }
 
 .hint-live {
@@ -660,9 +665,9 @@
 }
 
 .scale-row button[aria-checked="true"] {
-  background: var(--ink);
+  background: var(--primary-bg);
   border-color: transparent;
-  color: #111113;
+  color: var(--primary-ink);
   font-weight: 600;
 }
 
