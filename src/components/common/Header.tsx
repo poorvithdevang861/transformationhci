@@ -11,7 +11,21 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate, statusChip }) => {
   return (
-    <header className="edge" style={{ paddingBottom: '12px', borderBottom: '1px solid var(--line)' }}>
+    <header
+      className="edge app-header"
+      style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 1000,
+        background: 'var(--bg)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        paddingTop: '14px',
+        paddingBottom: '14px',
+        borderBottom: '1px solid var(--line)',
+        width: '100%'
+      }}
+    >
       <div className="l">
         <button
           type="button"
@@ -50,22 +64,22 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate, statusC
         </button>
       </div>
 
-      <div className="r" style={{ gap: '6px' }}>
+      <div className="r" style={{ gap: '8px' }}>
         {statusChip}
         <button
           type="button"
           className={`ibtn tb ${currentView === 'study' ? 'primary' : ''}`}
           onClick={() => onNavigate('study')}
-          style={{ height: '34px', borderRadius: '8px', padding: '0 12px', fontSize: '0.84rem' }}
+          style={{ height: '34px', borderRadius: '8px', padding: '0 14px', fontSize: '0.84rem' }}
         >
-          <Icon name="i-crosshair" size="sm" />
+          <Icon name="i-book-open" size="sm" />
           <span>Study</span>
         </button>
         <button
           type="button"
           className={`ibtn tb ${currentView === 'researcher' ? 'primary' : ''}`}
           onClick={() => onNavigate('researcher')}
-          style={{ height: '34px', borderRadius: '8px', padding: '0 12px', fontSize: '0.84rem' }}
+          style={{ height: '34px', borderRadius: '8px', padding: '0 14px', fontSize: '0.84rem' }}
         >
           <Icon name="i-chart" size="sm" />
           <span>Researcher</span>

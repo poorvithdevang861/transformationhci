@@ -60,7 +60,7 @@ export const ResearcherDashboard: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', paddingTop: '16px' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%', paddingBottom: '32px' }}>
       <div className="edge" style={{ marginBottom: '14px' }}>
         <div>
           <div className="eyebrow">Experiment Control</div>

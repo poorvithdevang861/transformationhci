@@ -31,11 +31,12 @@ export const HintControls: React.FC<HintControlsProps> = ({
       <div className="seg-btns" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
         <button
           type="button"
-          className="ibtn"
+          className="ibtn tb"
           onClick={onPrev}
           disabled={view === 0}
           aria-label="Previous clue"
           title="Previous clue"
+          style={{ width: '32px', height: '32px', padding: 0, borderRadius: '7px', justifyContent: 'center' }}
         >
           <Icon name="i-prev" size="sm" />
         </button>
@@ -44,7 +45,7 @@ export const HintControls: React.FC<HintControlsProps> = ({
           type="button"
           className="ibtn tb"
           onClick={onTogglePause}
-          style={{ minWidth: '82px', justifyContent: 'center' }}
+          style={{ minWidth: '82px', height: '32px', padding: '0 12px', borderRadius: '7px', justifyContent: 'center' }}
         >
           <Icon name={paused ? 'i-play' : 'i-pause'} size="sm" />
           <span>{paused ? 'Play' : 'Pause'}</span>
@@ -53,10 +54,11 @@ export const HintControls: React.FC<HintControlsProps> = ({
         {isAnimated && (
           <button
             type="button"
-            className="ibtn"
+            className="ibtn tb"
             onClick={onReplay}
             aria-label="Replay transformation"
             title="Replay transformation"
+            style={{ width: '32px', height: '32px', padding: 0, borderRadius: '7px', justifyContent: 'center' }}
           >
             <Icon name="i-replay" size="sm" />
           </button>
@@ -64,11 +66,12 @@ export const HintControls: React.FC<HintControlsProps> = ({
 
         <button
           type="button"
-          className="ibtn"
+          className="ibtn tb"
           onClick={onNext}
           disabled={view >= totalHints - 1}
           aria-label="Next clue"
           title="Next clue"
+          style={{ width: '32px', height: '32px', padding: 0, borderRadius: '7px', justifyContent: 'center' }}
         >
           <Icon name="i-next" size="sm" />
         </button>

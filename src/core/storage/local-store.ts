@@ -40,7 +40,12 @@ export class LocalStore {
   }
 
   public static clearAllSessions() {
-    localStorage.removeItem(SESSIONS_KEY);
+    ['ta-sessions-v2', 'ta_sessions', 'ta_results', 'sessions'].forEach((k) => {
+      try {
+        localStorage.removeItem(k);
+      } catch {}
+    });
+    fetch('/api/clear-sessions', { method: 'POST' }).catch(() => {});
   }
 
   public static getConfig(): StudyConfig {

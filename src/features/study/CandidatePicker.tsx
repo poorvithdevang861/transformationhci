@@ -46,6 +46,8 @@ export const CandidatePicker: React.FC<CandidatePickerProps> = ({
               key={num}
               className={`cell ${isSelected ? 'target' : ''}`}
               data-aoi={`option-${num}`}
+              onClick={() => !disabled && onSelectOption(num)}
+              style={{ cursor: disabled ? 'default' : 'pointer' }}
             >
               <button
                 type="button"
@@ -53,17 +55,21 @@ export const CandidatePicker: React.FC<CandidatePickerProps> = ({
                 role="radio"
                 aria-checked={isSelected}
                 disabled={disabled}
-                onClick={() => onSelectOption(num)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSelectOption(num);
+                }}
                 style={{
                   backgroundPosition: bgPos,
-                  ['--img' as string]: bgUrl
+                  ['--img' as string]: bgUrl,
+                  cursor: disabled ? 'default' : 'pointer'
                 } as React.CSSProperties}
               />
-              <div className="cap">
+              <div className="cap" style={{ userSelect: 'none' }}>
                 <span>
                   <b>Option {num}</b>
                 </span>
-                {isSelected && <span className="mk">●</span>}
+                {isSelected && <span className="mk" style={{ color: 'var(--ink)' }}>✓</span>}
               </div>
             </div>
           );

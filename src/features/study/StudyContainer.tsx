@@ -102,7 +102,7 @@ export const StudyContainer: React.FC<StudyContainerProps> = ({ onNavigate }) =>
   };
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', paddingTop: '16px' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%', paddingBottom: '32px' }}>
       {step === 'welcome' && <WelcomeStep onStart={handleStartWelcome} />}
       {step === 'intro' && session && <IntroStep mode={session.mode} onBegin={handleBeginTrials} />}
       {step === 'trial' && session && (

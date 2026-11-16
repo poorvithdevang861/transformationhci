@@ -31,6 +31,41 @@ class WebGazerService {
       });
 
       await wg.begin();
+
+      // Explicitly turn off video preview and face boxes so they never obscure questions
+      if (typeof wg.showVideoPreview === 'function') wg.showVideoPreview(false);
+      if (typeof wg.showPredictionPoints === 'function') wg.showPredictionPoints(false);
+      if (typeof wg.showFaceOverlay === 'function') wg.showFaceOverlay(false);
+      if (typeof wg.showFaceFeedbackBox === 'function') wg.showFaceFeedbackBox(false);
+
+      const hideVideoElements = () => {
+        const ids = [
+          'webgazerVideoFeed',
+          'webgazerVideoCanvas',
+          'webgazerFaceFeedbackBox',
+          'webgazerFaceOverlay',
+          'webgazerVideoContainer'
+        ];
+        ids.forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.style.setProperty('display', 'none', 'important');
+            el.style.setProperty('visibility', 'hidden', 'important');
+            el.style.setProperty('opacity', '0', 'important');
+            el.style.setProperty('pointer-events', 'none', 'important');
+            el.style.setProperty('position', 'fixed', 'important');
+            el.style.setProperty('top', '-9999px', 'important');
+            el.style.setProperty('left', '-9999px', 'important');
+            el.style.setProperty('width', '0', 'important');
+            el.style.setProperty('height', '0', 'important');
+          }
+        });
+      };
+
+      hideVideoElements();
+      const hideTimer = setInterval(hideVideoElements, 300);
+      setTimeout(() => clearInterval(hideTimer), 12000);
+
       this.isCameraActive = true;
       this.isMouseFallback = false;
       return { camera: true, message: 'Webcam connected and active.' };

@@ -151,6 +151,26 @@ class ExperimentServer(http.server.SimpleHTTPRequestHandler):
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
                 self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode("utf-8"))
+        elif parsed.path == "/api/clear-sessions":
+            # Remove all saved participant files and reset master results.txt
+            cleared_count = 0
+            if os.path.exists(RESULTS_DIR):
+                for f in os.listdir(RESULTS_DIR):
+                    try:
+                        os.remove(os.path.join(RESULTS_DIR, f))
+                        cleared_count += 1
+                    except Exception:
+                        pass
+            if os.path.exists(RESULTS_FILE):
+                try:
+                    os.remove(RESULTS_FILE)
+                except Exception:
+                    pass
+            print(f"[RESET] Cleared {cleared_count} session files from results/ and removed results.txt")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"ok": True, "message": "All recorded sessions cleared", "clearedFiles": cleared_count}).encode("utf-8"))
         else:
             self.send_response(404)
             self.end_headers()

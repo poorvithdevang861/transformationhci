@@ -126,6 +126,7 @@ export const HintPlayer: React.FC<HintPlayerProps> = ({
               setView(0);
               onHintsChanged?.(1);
             }}
+            style={{ height: '36px', padding: '0 16px', borderRadius: '8px' }}
           >
             <Icon name="i-bulb" />
             <span>Reveal clue 1</span>

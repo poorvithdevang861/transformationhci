@@ -66,10 +66,22 @@ body {
   font-family: var(--f-body);
   font-size: 14px;
   line-height: 1.5;
-  padding: var(--pad);
+  padding: 0 var(--pad) var(--pad);
   min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+}
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: var(--bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 16px;
 }
 
 img {
@@ -160,18 +172,28 @@ button {
   height: 15px;
 }
 
-/* Quiet buttons */
+/* Quiet buttons with robust auto-width and centered text */
 .ibtn {
-  width: 36px;
+  min-width: 34px;
   height: 36px;
-  display: inline-grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   border: 1px solid transparent;
   background: transparent;
   color: var(--muted);
   border-radius: 8px;
-  padding: 0;
-  flex: none;
+  padding: 0 10px;
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  box-sizing: border-box;
+  text-decoration: none;
   transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease;
 }
 
@@ -184,7 +206,7 @@ button {
 .ibtn:disabled {
   opacity: 0.35;
   cursor: default;
-  background: transparent;
+  pointer-events: none;
 }
 
 .ibtn.primary {
@@ -192,7 +214,8 @@ button {
   color: #111113;
   font-weight: 600;
   border: 1px solid transparent;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  padding: 0 16px;
+  box-shadow: none;
 }
 
 .ibtn.primary:hover:not(:disabled) {
@@ -201,15 +224,17 @@ button {
 }
 
 .ibtn.tb {
-  width: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 12px;
-  font-size: 0.84rem;
-  font-weight: 500;
   border: 1px solid var(--line);
   background: var(--sunken);
+  padding: 0 14px;
+  font-size: 0.84rem;
+  font-weight: 500;
+}
+
+.ibtn.tb:hover:not(:disabled) {
+  background: var(--raised);
+  border-color: var(--line-strong);
+  color: var(--ink);
 }
 
 .ibtn.primary.tb {
@@ -217,6 +242,11 @@ button {
   background: var(--ink);
   color: #111113;
   font-weight: 600;
+}
+
+.ibtn.primary.tb:hover:not(:disabled) {
+  background: #ffffff;
+  color: #000000;
 }
 
 /* Typography hierarchy (sentence case, quiet meta) */
@@ -582,4 +612,28 @@ dialog::backdrop {
 
 .modal-content-animated {
   animation: modalFadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Completely suppress WebGazer camera preview video and overlays so they never cover questions */
+#webgazerVideoFeed,
+#webgazerVideoCanvas,
+#webgazerFaceFeedbackBox,
+#webgazerFaceOverlay,
+#webgazerVideoContainer,
+div[id^="webgazerVideo"],
+canvas[id^="webgazerVideo"],
+video[id^="webgazer"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  position: fixed !important;
+  top: -9999px !important;
+  left: -9999px !important;
+  width: 0 !important;
+  height: 0 !important;
+  max-width: 0 !important;
+  max-height: 0 !important;
+  overflow: hidden !important;
+  z-index: -9999 !important;
 }
