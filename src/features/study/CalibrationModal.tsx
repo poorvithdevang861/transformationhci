@@ -23,7 +23,7 @@ export const CalibrationModal: React.FC<CalibrationModalProps> = ({ isOpen, onCl
 
     const allDone = POINTS.every((p) => (updated[p.id] || 0) >= CLICKS_PER_POINT);
     if (allDone) {
-      setTimeout(() => onClose(true), 400);
+      setTimeout(() => onClose(true), 300);
     }
   };
 
@@ -34,16 +34,16 @@ export const CalibrationModal: React.FC<CalibrationModalProps> = ({ isOpen, onCl
     <Modal
       isOpen={isOpen}
       onClose={() => onClose(false)}
-      title="9-Point Gaze Calibration"
-      eyebrow="Eye Tracker Setup"
+      title="9-point gaze calibration"
+      eyebrow="Eye tracker setup"
       width="820px"
     >
       <div style={{ textAlign: 'center', marginBottom: '12px' }}>
-        <p style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>
-          Keep your head steady. Look directly at each red dot and click it 5 times until it turns green.
+        <p style={{ color: 'var(--muted)', fontSize: '0.88rem', margin: '0 0 6px' }}>
+          Keep your head still. Fixate on each red target and click it 5 times until it turns green.
         </p>
-        <div className="meta" style={{ justifyContent: 'center', fontWeight: 600 }}>
-          Progress: {totalClicksDone} / {totalTargetClicks} clicks ({Math.round((totalClicksDone / totalTargetClicks) * 100)}%)
+        <div className="meta" style={{ justifyContent: 'center' }}>
+          Progress: {totalClicksDone} / {totalTargetClicks} ({Math.round((totalClicksDone / totalTargetClicks) * 100)}%)
         </div>
       </div>
 
@@ -54,7 +54,7 @@ export const CalibrationModal: React.FC<CalibrationModalProps> = ({ isOpen, onCl
           height: '420px',
           background: 'var(--sunken)',
           border: '1px solid var(--line)',
-          borderRadius: '16px',
+          borderRadius: '10px',
           overflow: 'hidden'
         }}
       >
@@ -69,22 +69,26 @@ export const CalibrationModal: React.FC<CalibrationModalProps> = ({ isOpen, onCl
               type="button"
               onClick={() => handlePointClick(pt.id)}
               disabled={isDone}
+              aria-label={`Calibration point ${pt.id + 1}`}
               style={{
                 position: 'absolute',
                 left: `${pt.x}%`,
                 top: `${pt.y}%`,
                 transform: 'translate(-50%, -50%)',
-                width: '38px',
-                height: '38px',
+                width: '34px',
+                height: '34px',
                 borderRadius: '50%',
-                border: isDone ? '2px solid var(--ok)' : '2px solid #fff',
-                background: isDone ? 'var(--ok)' : 'rgba(255, 64, 85, 0.9)',
-                color: '#fff',
-                fontWeight: 700,
-                fontSize: '12px',
+                border: isDone ? '2px solid var(--ok)' : '2px solid rgba(255, 255, 255, 0.7)',
+                background: isDone ? 'var(--ok)' : 'rgba(239, 68, 68, 0.9)',
+                color: '#ffffff',
+                fontWeight: 600,
+                fontSize: '11px',
+                fontFamily: 'var(--f-mono)',
                 cursor: isDone ? 'default' : 'pointer',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
-                transition: 'all 0.15s ease'
+                display: 'grid',
+                placeItems: 'center',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.5)',
+                transition: 'background-color 0.12s ease, border-color 0.12s ease'
               }}
             >
               {isDone ? '✓' : remaining}

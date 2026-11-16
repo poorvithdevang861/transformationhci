@@ -97,16 +97,38 @@ export const HintPlayer: React.FC<HintPlayerProps> = ({
 
   if (front < 0) {
     return (
-      <div className="panel hpanel" data-aoi="hint-panel" style={{ height: '100%' }}>
-        <div className="hint-empty">
-          <div className="hint-badge"><Icon name="i-bulb" /></div>
-          <div className="hint-copy">
-            <b>{n} {n === 1 ? 'hint' : 'hints'} available</b>
-            <span>Each hint demonstrates one transformation step for up to {Math.round(getWindowMs(0) / 1000)} seconds</span>
+      <div
+        className="panel hpanel"
+        data-aoi="hint-panel"
+        style={{ height: '100%', minHeight: '360px', display: 'flex', flexDirection: 'column' }}
+      >
+        <div className="hint-head" style={{ marginBottom: '12px' }}>
+          <div>
+            <div className="eyebrow">Transformation clues</div>
+            <h3 className="ptitle" style={{ margin: 0 }}>Hint assistant</h3>
           </div>
-          <button type="button" className="ibtn tb primary" onClick={() => { setFront(0); setView(0); onHintsChanged?.(1); }}>
+          <span className="pill">{n} clues available</span>
+        </div>
+
+        <div className="hint-empty" style={{ flex: 1, minHeight: '220px' }}>
+          <div className="hint-badge">
             <Icon name="i-bulb" />
-            <span>Show hint 1</span>
+          </div>
+          <div className="hint-copy">
+            <b>Need a clue?</b>
+            <span>Shows how Figure A turns into Figure B</span>
+          </div>
+          <button
+            type="button"
+            className="ibtn tb primary"
+            onClick={() => {
+              setFront(0);
+              setView(0);
+              onHintsChanged?.(1);
+            }}
+          >
+            <Icon name="i-bulb" />
+            <span>Reveal clue 1</span>
           </button>
         </div>
       </div>
@@ -120,25 +142,39 @@ export const HintPlayer: React.FC<HintPlayerProps> = ({
   const sideName = curHint.slot === 0 ? 'Left shape' : 'Right shape';
 
   return (
-    <div className={`panel hpanel ${condition}`} data-aoi="hint-panel" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div
+      className={`panel hpanel ${condition}`}
+      data-aoi="hint-panel"
+      style={{ height: '100%', minHeight: '360px', display: 'flex', flexDirection: 'column' }}
+    >
       <div className="hint-head" style={{ marginBottom: '10px' }}>
         <div>
-          <div className="eyebrow hstep">Hint {view + 1} of {n} · T{view + 1}</div>
+          <div className="eyebrow hstep">Clue {view + 1} of {n}</div>
           <div className="hname">
             <Icon name="i-bulb" size="sm" />
             <span><b>{sideName}</b> · {opName(curHint.op)}</span>
           </div>
         </div>
-        <div className="hleft meta" style={{ fontFamily: 'var(--f-mono)', fontSize: '0.82rem' }}>
+        <div
+          className="meta"
+          style={{
+            minWidth: '90px',
+            textAlign: 'right',
+            justifyContent: 'flex-end',
+            fontFamily: 'var(--f-mono)',
+            fontSize: '0.8rem',
+            fontVariantNumeric: 'tabular-nums'
+          }}
+        >
           {view === front && curElapsed < targetWin ? (
             <>
-              <Icon name="i-start" size="sm" />
-              {paused ? 'Paused · ' : ''}{remainingSec}s {front < n - 1 ? 'to next hint' : 'left'}
+              <Icon name="i-timer" size="sm" />
+              <span>{paused ? 'Paused' : `${remainingSec}s`}</span>
             </>
           ) : view < front ? (
-            <>Earlier hint</>
+            <span>Earlier clue</span>
           ) : (
-            <>All hints unlocked</>
+            <span>Unlocked</span>
           )}
         </div>
       </div>
@@ -148,7 +184,7 @@ export const HintPlayer: React.FC<HintPlayerProps> = ({
       ) : (
         <div className="hint-text">
           <p className="hsay"><b>{sideName} ({curHint.shape}):</b> {opSay(curHint.op)}</p>
-          {curHint.step > 0 && <p className="hwhich meta">This happens after the earlier change to the same shape.</p>}
+          {curHint.step > 0 && <p className="hwhich meta">Follows earlier transformation on this shape</p>}
         </div>
       )}
 
@@ -158,7 +194,7 @@ export const HintPlayer: React.FC<HintPlayerProps> = ({
         view={view}
         elapsed={elapsed}
         getWindowMs={getWindowMs}
-        onSelectHint={setView}
+        onSelectHint={(k) => setView(k)}
       />
 
       <HintControls
@@ -167,19 +203,13 @@ export const HintPlayer: React.FC<HintPlayerProps> = ({
         paused={paused}
         isAnimated={isAnimated}
         speed={speed}
-        onPrev={() => view > 0 && setView((v) => v - 1)}
-        onTogglePause={() => setPaused(!paused)}
-        onReplay={() => { setProgress(0); holdRef.current = 250; setPaused(false); }}
-        onNext={() => {
-          if (view < n - 1) {
-            const nextIdx = view + 1;
-            setView(nextIdx);
-            if (nextIdx > front) {
-              setFront(nextIdx);
-              onHintsChanged?.(nextIdx + 1);
-            }
-          }
+        onPrev={() => setView((v) => Math.max(0, v - 1))}
+        onTogglePause={() => setPaused((p) => !p)}
+        onReplay={() => {
+          setProgress(0);
+          setPaused(false);
         }}
+        onNext={() => setView((v) => Math.min(front, v + 1))}
         onSpeedChange={setSpeed}
       />
     </div>

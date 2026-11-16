@@ -20,15 +20,22 @@ export const CandidatePicker: React.FC<CandidatePickerProps> = ({
   const bgUrl = sheetUrl(set, problemIdx);
 
   return (
-    <div className="choose" data-aoi="choose-d" style={{ marginTop: '16px' }}>
-      <div className="lbl" style={{ marginBottom: '8px' }}>
-        Candidate options (1–4)
+    <div className="choose" data-aoi="choose-d" style={{ marginTop: '14px' }}>
+      <div className="edge" style={{ marginBottom: '8px' }}>
+        <span className="lbl">Answer choices</span>
+        <span className="meta">{selectedOption ? `Selected: Option ${selectedOption}` : 'Choose 1–4'}</span>
       </div>
+
       <div
         className="opts4"
         role="radiogroup"
-        aria-label="Candidate options"
-        style={{ ['--img' as string]: bgUrl } as React.CSSProperties}
+        aria-label="Answer options"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+          gap: '10px',
+          ['--img' as string]: bgUrl
+        } as React.CSSProperties}
       >
         {options.map((num) => {
           const isSelected = selectedOption === num;

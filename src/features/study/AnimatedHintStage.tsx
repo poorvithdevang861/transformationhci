@@ -39,7 +39,7 @@ export const AnimatedHintStage: React.FC<AnimatedHintStageProps> = ({
     return (
       <React.Fragment key={slot}>
         {showGhost && (
-          <g transform={`translate(${slotX} 70) scale(11)`} opacity={0.4}>
+          <g transform={`translate(${slotX} 70) scale(11)`} opacity={0.35}>
             <path
               d={pathD}
               vectorEffect="non-scaling-stroke"
@@ -52,7 +52,7 @@ export const AnimatedHintStage: React.FC<AnimatedHintStageProps> = ({
         )}
         <g
           transform={`translate(${slotX} ${slotY}) ${xform(p)} scale(11)`}
-          opacity={isCurrent ? 1 : 0.35}
+          opacity={isCurrent ? 1 : 0.4}
         >
           <path
             d={pathD}
@@ -92,23 +92,32 @@ export const AnimatedHintStage: React.FC<AnimatedHintStageProps> = ({
   };
 
   return (
-    <div className="hint-stage">
-      <div className="hfig">
-        <svg className="box" viewBox="0 0 100 100" role="img" aria-label="Figure A, animated hint">
+    <div
+      className="hint-stage"
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)',
+        alignItems: 'center',
+        gap: '12px',
+        minHeight: '150px'
+      }}
+    >
+      <div className="hfig" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+        <svg className="box" viewBox="0 0 100 100" role="img" aria-label="Figure A, animated transformation">
           {renderAnimatedSlot(0)}
           {renderAnimatedSlot(1)}
         </svg>
-        <span className="lbl">A</span>
+        <span className="flab">Figure A</span>
       </div>
 
-      <Icon name="i-arrow" />
+      <Icon name="i-arrow" style={{ color: 'var(--faint)', flex: 'none' }} />
 
-      <div className="hfig goal">
-        <svg className="box" viewBox="0 0 100 100" role="img" aria-label="Figure B, the goal">
+      <div className="hfig goal" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+        <svg className="box" viewBox="0 0 100 100" role="img" aria-label="Goal Figure B">
           {renderGoalSlot(0)}
           {renderGoalSlot(1)}
         </svg>
-        <span className="lbl">Goal · B</span>
+        <span className="flab">Target B</span>
       </div>
     </div>
   );

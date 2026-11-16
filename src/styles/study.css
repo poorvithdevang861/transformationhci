@@ -4,12 +4,14 @@
    ========================================================================== */
 
 .shell {
-  max-width: 1240px;
+  max-width: 1200px;
   margin: 0 auto;
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 16px;
   min-height: calc(100dvh - 2 * var(--pad));
+  overflow-x: hidden;
 }
 
 .screen {
@@ -17,6 +19,7 @@
   flex-direction: column;
   gap: 16px;
   flex: 1;
+  width: 100%;
 }
 
 .center {
@@ -110,8 +113,8 @@
 
 .hero {
   font-family: var(--f-display);
-  font-size: clamp(1.5rem, 2.8vw, 2rem);
-  line-height: 1.15;
+  font-size: clamp(1.4rem, 2.6vw, 1.85rem);
+  line-height: 1.2;
   letter-spacing: -0.015em;
   margin: 4px 0 0;
   font-weight: 600;
@@ -338,13 +341,14 @@
   font-weight: 500;
 }
 
-/* Puzzle layout */
+/* Puzzle layout: rock-solid alignment to prevent swaying */
 .qgrid {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.95fr);
   gap: 16px;
-  align-items: stretch;
+  align-items: start;
   flex: 1;
+  width: 100%;
 }
 
 .qpanel, .hpanel, .tpanel {
@@ -362,6 +366,10 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 10px;
+}
+
+.figs-wrapper {
+  width: 100%;
 }
 
 .figs.svg {

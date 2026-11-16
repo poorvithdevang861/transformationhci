@@ -11,81 +11,100 @@ export const WelcomeStep: React.FC<WelcomeStepProps> = ({ onStart }) => {
   const [device, setDevice] = useState<'laptop' | 'tablet' | 'phone'>('laptop');
   const [consent, setConsent] = useState(false);
 
+  const modes = [
+    { id: 'animation', icon: 'i-anim', label: 'Animated', sub: 'Morphing clues' },
+    { id: 'static', icon: 'i-text', label: 'Static', sub: 'Text clues' },
+    { id: 'randomise', icon: 'i-shuffle', label: 'Mixed', sub: 'Alternating' }
+  ] as const;
+
+  const devices = [
+    { id: 'laptop', icon: 'i-laptop', label: 'Laptop' },
+    { id: 'tablet', icon: 'i-tablet', label: 'Tablet' },
+    { id: 'phone', icon: 'i-smartphone', label: 'Phone' }
+  ] as const;
+
   return (
-    <div className="welcome" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-      <div className="panel intro">
-        <div className="eyebrow">Cognitive evaluation</div>
-        <h2 className="hero">
-          Visual reasoning with geometric transformations
-        </h2>
-        <p className="lead">
-          Each problem presents an analogy: <b>A : B :: C : ?</b> — figure A transforms into B via rule-based geometric operations (rotation, reflection, scaling, skew, or fill). Infer the rule applied to A, apply it to C, and select the correct candidate figure.
-        </p>
-        <ol className="steps">
-          <li>
-            <span>1</span>
-            <div>
-              <b>10 problem trials</b>
-              <em>Timed hint intervals available if needed</em>
-            </div>
-          </li>
-          <li>
-            <span>2</span>
-            <div>
-              <b>Post-experiment questionnaire</b>
-              <em>Mental effort, subjective workload, and system usability</em>
-            </div>
-          </li>
-        </ol>
-        <div className="meta wrap" style={{ marginTop: '16px' }}>
-          Estimated duration: 10–12 minutes. Laptop camera eye-gaze tracking runs locally in-browser with your explicit consent.
+    <div style={{ maxWidth: '580px', margin: '24px auto', width: '100%' }}>
+      <div
+        className="panel"
+        style={{
+          borderRadius: '20px',
+          padding: '32px 28px',
+          boxShadow: '0 24px 60px -15px rgba(0, 0, 0, 0.65)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '24px'
+        }}
+      >
+        {/* Header */}
+        <div style={{ textAlign: 'center' }}>
+          <div
+            style={{
+              width: '48px',
+              height: '48px',
+              margin: '0 auto 12px',
+              borderRadius: '14px',
+              background: 'var(--raised)',
+              border: '1px solid var(--line)',
+              display: 'grid',
+              placeItems: 'center',
+              color: 'var(--ink)'
+            }}
+          >
+            <Icon name="i-crosshair" />
+          </div>
+          <h2 style={{ margin: '0 0 6px', fontSize: '1.45rem', fontWeight: 600, letterSpacing: '-0.01em' }}>
+            Geometric Reasoning Study
+          </h2>
+          <p style={{ margin: 0, color: 'var(--muted)', fontSize: '0.92rem' }}>
+            10 visual analogy puzzles. Infer the rule from A to B and apply it to C.
+          </p>
         </div>
-      </div>
 
-      <div className="panel setup" style={{ gap: '16px' }}>
+        {/* Clue Mode Selector */}
         <div>
-          <div className="lbl" style={{ marginBottom: '8px' }}>
-            Experimental hint presentation condition
+          <div className="lbl" style={{ marginBottom: '8px', fontSize: '0.8rem' }}>
+            Clue Presentation
           </div>
-          <div className="modes" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {(
-              [
-                { id: 'static', icon: 'i-text', title: 'Static mode', desc: 'Problem figures as static images with text hint descriptions' },
-                { id: 'animation', icon: 'i-anim', title: 'Animated mode', desc: 'Interactive vector figures with animated morphing hint transformations' },
-                { id: 'randomise', icon: 'i-shuffle', title: 'Randomised condition', desc: 'Alternating counterbalanced assignment across problem trials' }
-              ] as const
-            ).map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className="mode"
-                aria-checked={mode === item.id}
-                onClick={() => setMode(item.id)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  padding: '12px',
-                  borderRadius: '8px',
-                  background: mode === item.id ? 'var(--raised)' : 'var(--sunken)',
-                  border: mode === item.id ? '1px solid var(--accent)' : '1px solid var(--line)',
-                  textAlign: 'left'
-                }}
-              >
-                <Icon name={item.icon} />
-                <div>
-                  <div style={{ fontWeight: 600 }}>{item.title}</div>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--faint)' }}>{item.desc}</div>
-                </div>
-              </button>
-            ))}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px' }}>
+            {modes.map((m) => {
+              const isActive = mode === m.id;
+              return (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => setMode(m.id)}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '14px 10px',
+                    borderRadius: '12px',
+                    border: isActive ? '1.5px solid var(--accent)' : '1px solid var(--line)',
+                    background: isActive ? 'var(--raised)' : 'var(--sunken)',
+                    color: isActive ? 'var(--ink)' : 'var(--muted)',
+                    transition: 'all 0.15s ease',
+                    textAlign: 'center'
+                  }}
+                >
+                  <Icon name={m.icon} />
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>{m.label}</div>
+                    <div style={{ fontSize: '0.74rem', color: 'var(--faint)' }}>{m.sub}</div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        <div className="edge">
-          <div style={{ flex: 1 }}>
-            <label className="lbl" htmlFor="pidInput">
-              Participant identifier
+        {/* Participant & Device */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '14px', alignItems: 'end' }}>
+          <div>
+            <label className="lbl" htmlFor="pidInput" style={{ display: 'block', marginBottom: '6px' }}>
+              Participant ID
             </label>
             <input
               id="pidInput"
@@ -93,60 +112,106 @@ export const WelcomeStep: React.FC<WelcomeStepProps> = ({ onStart }) => {
               onChange={(e) => setPid(e.target.value)}
               style={{
                 width: '100%',
+                height: '38px',
                 background: 'var(--sunken)',
                 border: '1px solid var(--line)',
-                borderRadius: '8px',
-                padding: '8px 12px',
-                marginTop: '4px',
-                fontFamily: 'var(--f-mono)'
+                borderRadius: '10px',
+                padding: '0 12px',
+                fontFamily: 'var(--f-mono)',
+                fontSize: '0.9rem',
+                color: 'var(--ink)'
               }}
             />
           </div>
+
           <div>
-            <div className="lbl">Testing device</div>
-            <div className="seg" style={{ marginTop: '4px' }}>
-              {(['laptop', 'tablet', 'phone'] as const).map((d) => (
-                <button
-                  key={d}
-                  type="button"
-                  aria-pressed={device === d}
-                  onClick={() => setDevice(d)}
-                >
-                  {d}
-                </button>
-              ))}
+            <div className="lbl" style={{ marginBottom: '6px' }}>
+              Device
+            </div>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '4px',
+                background: 'var(--sunken)',
+                padding: '3px',
+                borderRadius: '10px',
+                border: '1px solid var(--line)',
+                height: '38px'
+              }}
+            >
+              {devices.map((d) => {
+                const isSelected = device === d.id;
+                return (
+                  <button
+                    key={d.id}
+                    type="button"
+                    onClick={() => setDevice(d.id)}
+                    title={d.label}
+                    style={{
+                      border: 0,
+                      background: isSelected ? 'var(--raised)' : 'transparent',
+                      color: isSelected ? 'var(--ink)' : 'var(--muted)',
+                      borderRadius: '8px',
+                      display: 'grid',
+                      placeItems: 'center',
+                      transition: 'background-color 0.12s ease'
+                    }}
+                  >
+                    <Icon name={d.icon} size="sm" />
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
 
-        <div className="consent">
+        {/* Consent Checkbox */}
+        <label
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            padding: '12px 14px',
+            borderRadius: '12px',
+            background: 'var(--sunken)',
+            border: '1px solid var(--line)',
+            fontSize: '0.84rem',
+            color: 'var(--muted)',
+            cursor: 'pointer'
+          }}
+        >
           <input
             type="checkbox"
-            id="consentCheck"
             checked={consent}
             onChange={(e) => setConsent(e.target.checked)}
+            style={{ width: '18px', height: '18px', accentColor: 'var(--accent)', cursor: 'pointer' }}
           />
-          <label htmlFor="consentCheck">
-            I consent to participating in this cognitive study and understand that gaze fixations and response timestamps will be logged for scientific research.
-          </label>
-        </div>
+          <span>I agree to participate and enable anonymous in-browser eye tracking.</span>
+        </label>
 
-        <div className="edge" style={{ marginTop: 'auto', paddingTop: '12px', borderTop: '1px solid var(--line)' }}>
-          <div className="l meta">
-            Camera check and calibration follows next
-          </div>
-          <div className="r">
-            <button
-              type="button"
-              className="ibtn tb primary"
-              disabled={!consent || !pid.trim()}
-              onClick={() => onStart(pid.trim(), mode, device)}
-            >
-              <span>Begin experiment</span>
-              <Icon name="i-arrow" />
-            </button>
-          </div>
-        </div>
+        {/* Start Button */}
+        <button
+          type="button"
+          disabled={!consent || !pid.trim()}
+          onClick={() => onStart(pid.trim(), mode, device)}
+          className="ibtn primary"
+          style={{
+            width: '100%',
+            height: '46px',
+            borderRadius: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            fontSize: '0.95rem',
+            fontWeight: 600,
+            cursor: !consent || !pid.trim() ? 'default' : 'pointer'
+          }}
+        >
+          <span>Start Study</span>
+          <Icon name="i-arrow" />
+        </button>
       </div>
     </div>
   );

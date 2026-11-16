@@ -20,15 +20,15 @@ export const PuzzleFigures: React.FC<PuzzleFiguresProps> = ({
 }) => {
   const letters = ['A', 'B', 'C', 'D'] as const;
 
-  // Static mode: Displays problem sheet top banner with calibrated AOI boundaries for A, B, C, D
+  // Static mode: Displays original problem sheet top banner with aligned AOI boundaries
   if (condition === 'static' && set) {
     const bgUrl = sheetUrl(set, problemIdx);
     return (
-      <div className="figs img" style={{ marginBottom: '14px', position: 'relative' }}>
+      <div className="figs-wrapper" style={{ marginBottom: '14px' }}>
         <div
           className="sheet-top"
           role="img"
-          aria-label="Figures A, B and C, and the missing figure D"
+          aria-label="Figures A, B, C, and D"
           style={{ ['--img' as string]: bgUrl, position: 'relative' } as React.CSSProperties}
         >
           <div
@@ -36,8 +36,8 @@ export const PuzzleFigures: React.FC<PuzzleFiguresProps> = ({
               position: 'absolute',
               inset: 0,
               display: 'grid',
-              gridTemplateColumns: 'repeat(4, 1fr)',
-              gap: '8px',
+              gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+              gap: '10px',
               padding: '4px'
             }}
           >
@@ -50,7 +50,7 @@ export const PuzzleFigures: React.FC<PuzzleFiguresProps> = ({
                 style={{
                   width: '100%',
                   height: '100%',
-                  borderRadius: '10px',
+                  borderRadius: '8px',
                   position: 'relative'
                 }}
               >
@@ -60,10 +60,9 @@ export const PuzzleFigures: React.FC<PuzzleFiguresProps> = ({
                     position: 'absolute',
                     bottom: '6px',
                     left: '8px',
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    color: 'var(--muted)',
-                    opacity: 0.8
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    color: 'var(--muted)'
                   }}
                 >
                   {letter}
@@ -76,7 +75,7 @@ export const PuzzleFigures: React.FC<PuzzleFiguresProps> = ({
     );
   }
 
-  // Animated mode: Displays clean interactive vector SVG figures with AOI boundaries
+  // Animated mode: Clean interactive vector SVG figures with AOI boundaries
   const renderShapeSlot = (shapeName: string, slot: 0 | 1, figureIndex: number) => {
     const isTargetB = figureIndex === 1;
     const ops = shapeOps(spec, slot);
@@ -102,36 +101,53 @@ export const PuzzleFigures: React.FC<PuzzleFiguresProps> = ({
   };
 
   return (
-    <div className="figs svg" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
-      {letters.map((letter, idx) => {
-        const isB = letter === 'B';
-        const isD = letter === 'D';
-        const shapes = idx < 2 ? spec.A : spec.C;
+    <div className="figs-wrapper" style={{ marginBottom: '14px' }}>
+      <div
+        className="figs svg"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+          gap: '10px'
+        }}
+      >
+        {letters.map((letter, idx) => {
+          const isB = letter === 'B';
+          const isD = letter === 'D';
+          const shapes = idx < 2 ? spec.A : spec.C;
 
-        return (
-          <div
-            key={letter}
-            className={`cell fig ${isB ? 'target' : isD ? 'answer' : ''}`}
-            data-aoi={`fig-${letter}`}
-          >
-            <svg className="box" viewBox="0 0 100 100" role="img" aria-label={`Figure ${letter}`}>
-              {idx < 3 ? (
-                <>
-                  {renderShapeSlot(shapes[0], 0, idx)}
-                  {renderShapeSlot(shapes[1], 1, idx)}
-                </>
-              ) : (
-                <text x="50" y="58" textAnchor="middle" fill="var(--faint)" fontSize="28" fontWeight="bold">
-                  ?
-                </text>
-              )}
-            </svg>
-            <div className="cap">
-              <b>{letter}</b>
+          return (
+            <div
+              key={letter}
+              className={`cell fig ${isB ? 'target' : isD ? 'answer' : ''}`}
+              data-aoi={`fig-${letter}`}
+            >
+              <svg className="box" viewBox="0 0 100 100" role="img" aria-label={`Figure ${letter}`}>
+                {idx < 3 ? (
+                  <>
+                    {renderShapeSlot(shapes[0], 0, idx)}
+                    {renderShapeSlot(shapes[1], 1, idx)}
+                  </>
+                ) : (
+                  <text
+                    x="50"
+                    y="58"
+                    textAnchor="middle"
+                    fill="var(--faint)"
+                    fontSize="26"
+                    fontWeight="600"
+                    fontFamily="var(--f-mono)"
+                  >
+                    ?
+                  </text>
+                )}
+              </svg>
+              <div className="cap">
+                <b>{letter}</b>
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 };

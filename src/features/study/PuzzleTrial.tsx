@@ -56,28 +56,30 @@ export const PuzzleTrial: React.FC<PuzzleTrialProps> = ({
         className="edge"
         style={{
           background: 'var(--sunken)',
-          padding: '8px 12px',
+          padding: '6px 12px',
           borderRadius: '8px',
           border: '1px solid var(--line)',
           fontSize: '0.8rem'
         }}
       >
-        <div className="l" style={{ gap: '16px' }}>
-          <label className="chk" style={{ fontSize: '0.8rem', cursor: 'pointer' }}>
+        <div className="l" style={{ gap: '14px' }}>
+          <label className="chk" style={{ fontSize: '0.8rem', cursor: 'pointer' }} title="Toggle Area of Interest boundaries">
             <input
               type="checkbox"
               checked={showBoundaries}
               onChange={(e) => setShowBoundaries(e.target.checked)}
             />
-            <span style={{ fontWeight: 500 }}>Show mapped boundaries</span>
+            <Icon name="i-layers" size="sm" />
+            <span style={{ fontWeight: 500 }}>Boundaries</span>
           </label>
-          <label className="chk" style={{ fontSize: '0.8rem', cursor: 'pointer' }}>
+          <label className="chk" style={{ fontSize: '0.8rem', cursor: 'pointer' }} title="Toggle live eye gaze dot">
             <input
               type="checkbox"
               checked={showGazeDot}
               onChange={(e) => toggleGazeDot(e.target.checked)}
             />
-            <span>Live gaze dot</span>
+            <Icon name="i-eye" size="sm" />
+            <span>Gaze dot</span>
           </label>
         </div>
 
@@ -87,18 +89,24 @@ export const PuzzleTrial: React.FC<PuzzleTrialProps> = ({
             className="ibtn tb"
             style={{ height: '28px', fontSize: '0.76rem', padding: '0 10px' }}
             onClick={() => setShowCalibModal(true)}
+            title="Recalibrate 9-point eye tracker"
           >
-            <Icon name="i-q" size="sm" />
-            <span>9-point calibration</span>
+            <Icon name="i-crosshair" size="sm" />
+            <span>Calibrate</span>
           </button>
         </div>
       </div>
 
       <div
         className={`qgrid ${showBoundaries ? 'show-mapped-boundaries' : ''}`}
-        style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '16px' }}
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 1.25fr) minmax(0, 0.95fr)',
+          gap: '16px',
+          alignItems: 'start'
+        }}
       >
-        <section className="panel qpanel">
+        <section className="panel qpanel" style={{ minWidth: 0 }}>
           <div className="phead" style={{ marginBottom: '12px' }}>
             <div>
               <span className="eyebrow">
@@ -108,7 +116,7 @@ export const PuzzleTrial: React.FC<PuzzleTrialProps> = ({
             </div>
             <span className="pill">
               <Icon name={condition === 'animated' ? 'i-anim' : 'i-text'} size="sm" />
-              {condition === 'animated' ? 'Animated hints' : 'Text hints'}
+              {condition === 'animated' ? 'Animated' : 'Static'}
             </span>
           </div>
 
@@ -129,7 +137,7 @@ export const PuzzleTrial: React.FC<PuzzleTrialProps> = ({
           <div className="edge" style={{ marginTop: '16px', borderTop: '1px solid var(--line)', paddingTop: '12px' }}>
             <div className="l meta">
               <Icon name="i-pointer" size="sm" />
-              {selectedOption ? `Selected: Option ${selectedOption}` : 'Select a candidate option'}
+              <span>{selectedOption ? `Option ${selectedOption} chosen` : 'Pick an option'}</span>
             </div>
             <div className="r">
               <button
@@ -145,7 +153,7 @@ export const PuzzleTrial: React.FC<PuzzleTrialProps> = ({
           </div>
         </section>
 
-        <section>
+        <section style={{ minWidth: 0 }}>
           <HintPlayer
             spec={spec}
             condition={condition}

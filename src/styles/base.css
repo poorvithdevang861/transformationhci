@@ -69,6 +69,7 @@ body {
   padding: var(--pad);
   min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 img {
