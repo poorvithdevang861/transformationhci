@@ -7,7 +7,7 @@ import { SessionsTable } from './SessionsTable';
 import { StudyConfigForm } from './StudyConfigForm';
 import { HeatmapDialog } from './HeatmapDialog';
 import { exportGazeCsv, exportTrialsCsv, exportSessionsCsv } from '../../core/storage/csv-exporter';
-import { downloadBlob } from '../../core/storage/api-client';
+import { downloadBlob, fetchSessionsFromServer } from '../../core/storage/api-client';
 import { Icon } from '../../components/common/Icon';
 
 export const ResearcherDashboard: React.FC = () => {
@@ -17,6 +17,12 @@ export const ResearcherDashboard: React.FC = () => {
 
   useEffect(() => {
     setSessions(LocalStore.getSessions());
+    fetchSessionsFromServer().then((serverSessions) => {
+      if (serverSessions && serverSessions.length > 0) {
+        serverSessions.forEach((s) => LocalStore.saveSession(s));
+        setSessions(LocalStore.getSessions());
+      }
+    });
   }, []);
 
   const handleDeleteAll = () => {

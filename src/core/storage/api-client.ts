@@ -22,6 +22,17 @@ export async function saveResultsToServer(session: ExperimentSession): Promise<{
   }
 }
 
+export async function fetchSessionsFromServer(): Promise<ExperimentSession[]> {
+  try {
+    const res = await fetch('/api/sessions');
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (err) {
+    console.warn('Backend server not reachable for session fetch:', err);
+    return [];
+  }
+}
+
 export function downloadBlob(content: string, filename: string, mimeType: string) {
   const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);

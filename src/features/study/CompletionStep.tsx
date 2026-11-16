@@ -31,62 +31,103 @@ export const CompletionStep: React.FC<CompletionStepProps> = ({
   };
 
   return (
-    <div className="panel narrow" style={{ maxWidth: '640px', margin: '0 auto', textAlign: 'center' }}>
-      <div style={{ color: 'var(--ok)', marginBottom: '12px' }}>
-        <Icon name="i-check" size="lg" />
-      </div>
-      <h2 className="ptitle" style={{ fontSize: '1.6rem' }}>
-        Study Complete & Progress Saved
-      </h2>
-      <p style={{ color: 'var(--muted)', marginTop: '8px' }}>
-        Thank you for participating! Your responses, trial timings, and eye-gaze tracking metrics across all mapped
-        boundaries have been recorded.
-      </p>
-
+    <div style={{ maxWidth: '580px', margin: '32px auto', width: '100%' }}>
       <div
+        className="panel"
         style={{
-          margin: '20px 0',
-          textAlign: 'left',
-          background: 'var(--sunken)',
+          borderRadius: '20px',
+          padding: '32px 28px',
+          boxShadow: 'none',
           border: '1px solid var(--line)',
-          borderRadius: '14px',
-          padding: '16px'
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '20px',
+          textAlign: 'center'
         }}
       >
-        <div style={{ fontWeight: 700, marginBottom: '8px', color: 'var(--accent)' }}>Executive Summary</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.88rem' }}>
-          <div>Participant: <b>{session.id}</b></div>
-          <div>Accuracy: <b>{accPct}% ({correctCount}/{n})</b></div>
-          <div>Mean Time: <b>{meanTimeS}s</b></div>
-          <div>Eye-Tracking: <b>{session.eyeTracking ? 'Active' : 'Mouse Fallback'}</b></div>
+        <div>
+          <div
+            style={{
+              width: '44px',
+              height: '44px',
+              margin: '0 auto 12px',
+              borderRadius: '12px',
+              background: 'var(--raised)',
+              border: '1px solid var(--line)',
+              display: 'grid',
+              placeItems: 'center',
+              color: 'var(--ok)'
+            }}
+          >
+            <Icon name="i-check" />
+          </div>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 600, margin: '0 0 6px' }}>
+            Study Complete & Results Saved
+          </h2>
+          <p style={{ margin: 0, color: 'var(--muted)', fontSize: '0.9rem', lineHeight: 1.5 }}>
+            Thank you for participating. Your trial choices, response times, and gaze tracking have been recorded.
+          </p>
         </div>
-      </div>
 
-      <div className="edge" style={{ justifyContent: 'center', gap: '12px', marginTop: '20px' }}>
-        <button
-          type="button"
-          className="ibtn tb primary"
-          onClick={handleDownloadTxt}
-          style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', border: 0 }}
+        <div
+          style={{
+            textAlign: 'left',
+            background: 'var(--sunken)',
+            border: '1px solid var(--line)',
+            borderRadius: '12px',
+            padding: '16px'
+          }}
         >
-          <Icon name="i-download" />
-          Download results.txt
-        </button>
-        <button type="button" className="ibtn tb" onClick={handleDownloadJson}>
-          <Icon name="i-code" />
-          Download JSON
-        </button>
-      </div>
+          <div className="eyebrow" style={{ marginBottom: '8px' }}>Session overview</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.88rem' }}>
+            <div>Participant: <b>{session.id}</b></div>
+            <div>Accuracy: <b>{accPct}% ({correctCount}/{n})</b></div>
+            <div>Mean Time: <b>{meanTimeS}s</b></div>
+            <div>Eye-Tracking: <b>{session.eyeTracking ? 'Active' : 'Mouse Fallback'}</b></div>
+          </div>
+        </div>
 
-      <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'center', gap: '12px' }}>
-        <button type="button" className="ibtn tb" onClick={onNewSession}>
-          <Icon name="i-home" />
-          New Session
-        </button>
-        <button type="button" className="ibtn tb" onClick={onOpenResearcher}>
-          <Icon name="i-chart" />
-          Researcher Dashboard
-        </button>
+        <div className="edge" style={{ justifyContent: 'center', gap: '12px' }}>
+          <button
+            type="button"
+            className="ibtn primary"
+            onClick={handleDownloadTxt}
+            style={{ height: '38px', borderRadius: '10px', padding: '0 16px', fontWeight: 600 }}
+          >
+            <Icon name="i-download" />
+            <span>Download results.txt</span>
+          </button>
+          <button
+            type="button"
+            className="ibtn"
+            onClick={handleDownloadJson}
+            style={{ height: '38px', borderRadius: '10px', padding: '0 16px', fontWeight: 500 }}
+          >
+            <Icon name="i-code" />
+            <span>Download JSON</span>
+          </button>
+        </div>
+
+        <div className="edge" style={{ borderTop: '1px solid var(--line)', paddingTop: '16px', justifyContent: 'center', gap: '12px' }}>
+          <button
+            type="button"
+            className="ibtn"
+            onClick={onNewSession}
+            style={{ height: '36px', borderRadius: '8px', padding: '0 14px' }}
+          >
+            <Icon name="i-home" />
+            <span>New Session</span>
+          </button>
+          <button
+            type="button"
+            className="ibtn"
+            onClick={onOpenResearcher}
+            style={{ height: '36px', borderRadius: '8px', padding: '0 14px' }}
+          >
+            <Icon name="i-chart" />
+            <span>Researcher Dashboard</span>
+          </button>
+        </div>
       </div>
     </div>
   );

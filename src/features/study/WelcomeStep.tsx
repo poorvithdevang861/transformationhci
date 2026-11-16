@@ -8,30 +8,29 @@ interface WelcomeStepProps {
 export const WelcomeStep: React.FC<WelcomeStepProps> = ({ onStart }) => {
   const [pid, setPid] = useState(() => 'P-' + Math.random().toString(36).substring(2, 7).toUpperCase());
   const [mode, setMode] = useState<'static' | 'animation' | 'randomise'>('animation');
-  const [device, setDevice] = useState<'laptop' | 'tablet' | 'phone'>('laptop');
+  const [device, setDevice] = useState<'laptop' | 'tablet'>('laptop');
   const [consent, setConsent] = useState(false);
 
   const modes = [
-    { id: 'animation', icon: 'i-anim', label: 'Animated', sub: 'Morphing clues' },
-    { id: 'static', icon: 'i-text', label: 'Static', sub: 'Text clues' },
+    { id: 'animation', icon: 'i-anim', label: 'Animated', sub: 'Morphing shapes' },
+    { id: 'static', icon: 'i-text', label: 'Static', sub: 'Text explanations' },
     { id: 'randomise', icon: 'i-shuffle', label: 'Mixed', sub: 'Alternating' }
   ] as const;
 
   const devices = [
     { id: 'laptop', icon: 'i-laptop', label: 'Laptop' },
-    { id: 'tablet', icon: 'i-tablet', label: 'Tablet' },
-    { id: 'phone', icon: 'i-smartphone', label: 'Phone' }
+    { id: 'tablet', icon: 'i-tablet', label: 'Tablet' }
   ] as const;
 
   return (
-    <div style={{ maxWidth: '580px', margin: '24px auto', width: '100%' }}>
+    <div style={{ maxWidth: '540px', margin: '32px auto', width: '100%' }}>
       <div
         className="panel"
         style={{
           borderRadius: '20px',
           padding: '32px 28px',
-          boxShadow: '0 24px 60px -15px rgba(0, 0, 0, 0.65)',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
+          boxShadow: 'none',
+          border: '1px solid var(--line)',
           display: 'flex',
           flexDirection: 'column',
           gap: '24px'
@@ -41,10 +40,10 @@ export const WelcomeStep: React.FC<WelcomeStepProps> = ({ onStart }) => {
         <div style={{ textAlign: 'center' }}>
           <div
             style={{
-              width: '48px',
-              height: '48px',
+              width: '44px',
+              height: '44px',
               margin: '0 auto 12px',
-              borderRadius: '14px',
+              borderRadius: '12px',
               background: 'var(--raised)',
               border: '1px solid var(--line)',
               display: 'grid',
@@ -54,17 +53,17 @@ export const WelcomeStep: React.FC<WelcomeStepProps> = ({ onStart }) => {
           >
             <Icon name="i-crosshair" />
           </div>
-          <h2 style={{ margin: '0 0 6px', fontSize: '1.45rem', fontWeight: 600, letterSpacing: '-0.01em' }}>
+          <h2 style={{ margin: '0 0 6px', fontSize: '1.4rem', fontWeight: 600, letterSpacing: '-0.01em' }}>
             Geometric Reasoning Study
           </h2>
-          <p style={{ margin: 0, color: 'var(--muted)', fontSize: '0.92rem' }}>
-            10 visual analogy puzzles. Infer the rule from A to B and apply it to C.
+          <p style={{ margin: 0, color: 'var(--muted)', fontSize: '0.9rem', lineHeight: 1.5 }}>
+            Infer the rule from A to B and apply it to C across 10 visual analogy puzzles.
           </p>
         </div>
 
         {/* Clue Mode Selector */}
         <div>
-          <div className="lbl" style={{ marginBottom: '8px', fontSize: '0.8rem' }}>
+          <div className="lbl" style={{ marginBottom: '8px' }}>
             Clue Presentation
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px' }}>
@@ -82,11 +81,12 @@ export const WelcomeStep: React.FC<WelcomeStepProps> = ({ onStart }) => {
                     gap: '6px',
                     padding: '14px 10px',
                     borderRadius: '12px',
-                    border: isActive ? '1.5px solid var(--accent)' : '1px solid var(--line)',
+                    border: isActive ? '1.5px solid var(--ink)' : '1px solid var(--line)',
                     background: isActive ? 'var(--raised)' : 'var(--sunken)',
                     color: isActive ? 'var(--ink)' : 'var(--muted)',
-                    transition: 'all 0.15s ease',
-                    textAlign: 'center'
+                    transition: 'all 0.12s ease',
+                    textAlign: 'center',
+                    cursor: 'pointer'
                   }}
                 >
                   <Icon name={m.icon} />
@@ -131,7 +131,7 @@ export const WelcomeStep: React.FC<WelcomeStepProps> = ({ onStart }) => {
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
+                gridTemplateColumns: 'repeat(2, 1fr)',
                 gap: '4px',
                 background: 'var(--sunken)',
                 padding: '3px',
@@ -147,18 +147,23 @@ export const WelcomeStep: React.FC<WelcomeStepProps> = ({ onStart }) => {
                     key={d.id}
                     type="button"
                     onClick={() => setDevice(d.id)}
-                    title={d.label}
                     style={{
                       border: 0,
                       background: isSelected ? 'var(--raised)' : 'transparent',
                       color: isSelected ? 'var(--ink)' : 'var(--muted)',
-                      borderRadius: '8px',
-                      display: 'grid',
-                      placeItems: 'center',
+                      borderRadius: '7px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      fontSize: '0.82rem',
+                      fontWeight: 500,
+                      cursor: 'pointer',
                       transition: 'background-color 0.12s ease'
                     }}
                   >
                     <Icon name={d.icon} size="sm" />
+                    <span>{d.label}</span>
                   </button>
                 );
               })}
@@ -185,9 +190,9 @@ export const WelcomeStep: React.FC<WelcomeStepProps> = ({ onStart }) => {
             type="checkbox"
             checked={consent}
             onChange={(e) => setConsent(e.target.checked)}
-            style={{ width: '18px', height: '18px', accentColor: 'var(--accent)', cursor: 'pointer' }}
+            style={{ width: '18px', height: '18px', accentColor: 'var(--ink)', cursor: 'pointer' }}
           />
-          <span>I agree to participate and enable anonymous in-browser eye tracking.</span>
+          <span>I agree to participate and enable anonymous eye tracking.</span>
         </label>
 
         {/* Start Button */}
@@ -198,13 +203,13 @@ export const WelcomeStep: React.FC<WelcomeStepProps> = ({ onStart }) => {
           className="ibtn primary"
           style={{
             width: '100%',
-            height: '46px',
+            height: '44px',
             borderRadius: '12px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             gap: '8px',
-            fontSize: '0.95rem',
+            fontSize: '0.94rem',
             fontWeight: 600,
             cursor: !consent || !pid.trim() ? 'default' : 'pointer'
           }}

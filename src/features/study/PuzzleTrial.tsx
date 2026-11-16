@@ -6,7 +6,6 @@ import { CandidatePicker } from './CandidatePicker';
 import { HintPlayer } from './HintPlayer';
 import { Icon } from '../../components/common/Icon';
 import { CalibrationModal } from './CalibrationModal';
-import { gazeTracker } from '../../core/gaze/webgazer-service';
 
 interface PuzzleTrialProps {
   setIdx: number;
@@ -35,8 +34,6 @@ export const PuzzleTrial: React.FC<PuzzleTrialProps> = ({
 
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [hintsUsed, setHintsUsed] = useState(0);
-  const [showBoundaries, setShowBoundaries] = useState(true);
-  const [showGazeDot, setShowGazeDot] = useState(false);
   const [showCalibModal, setShowCalibModal] = useState(false);
 
   useEffect(() => {
@@ -44,50 +41,44 @@ export const PuzzleTrial: React.FC<PuzzleTrialProps> = ({
     setHintsUsed(0);
   }, [problemIdx, setIdx]);
 
-  const toggleGazeDot = (checked: boolean) => {
-    setShowGazeDot(checked);
-    gazeTracker.setShowGazeDot(checked);
-  };
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-      {/* Eye Tracker & Calibrated Boundary Toolbar */}
+      {/* Trial Status & Calibration Header (Boundaries strictly hidden from participant) */}
       <div
         className="edge"
         style={{
           background: 'var(--sunken)',
-          padding: '6px 12px',
-          borderRadius: '8px',
+          padding: '6px 14px',
+          borderRadius: '10px',
           border: '1px solid var(--line)',
-          fontSize: '0.8rem'
+          fontSize: '0.82rem',
+          minHeight: '36px'
         }}
       >
-        <div className="l" style={{ gap: '14px' }}>
-          <label className="chk" style={{ fontSize: '0.8rem', cursor: 'pointer' }} title="Toggle Area of Interest boundaries">
-            <input
-              type="checkbox"
-              checked={showBoundaries}
-              onChange={(e) => setShowBoundaries(e.target.checked)}
+        <div className="l" style={{ gap: '10px', alignItems: 'center' }}>
+          <span className="eyebrow" style={{ margin: 0, fontWeight: 600 }}>
+            Trial {trialNumber} of {totalTrials}
+          </span>
+          <span style={{ color: 'var(--line-strong)' }}>|</span>
+          <span className="meta" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <span
+              style={{
+                width: '7px',
+                height: '7px',
+                borderRadius: '50%',
+                background: 'var(--ok)',
+                display: 'inline-block'
+              }}
             />
-            <Icon name="i-layers" size="sm" />
-            <span style={{ fontWeight: 500 }}>Boundaries</span>
-          </label>
-          <label className="chk" style={{ fontSize: '0.8rem', cursor: 'pointer' }} title="Toggle live eye gaze dot">
-            <input
-              type="checkbox"
-              checked={showGazeDot}
-              onChange={(e) => toggleGazeDot(e.target.checked)}
-            />
-            <Icon name="i-eye" size="sm" />
-            <span>Gaze dot</span>
-          </label>
+            Eye tracking active
+          </span>
         </div>
 
         <div className="r" style={{ gap: '8px' }}>
           <button
             type="button"
             className="ibtn tb"
-            style={{ height: '28px', fontSize: '0.76rem', padding: '0 10px' }}
+            style={{ height: '28px', fontSize: '0.78rem', padding: '0 10px', borderRadius: '7px' }}
             onClick={() => setShowCalibModal(true)}
             title="Recalibrate 9-point eye tracker"
           >
@@ -97,8 +88,9 @@ export const PuzzleTrial: React.FC<PuzzleTrialProps> = ({
         </div>
       </div>
 
+      {/* Main Study Grid - strictly clean without boundary highlights */}
       <div
-        className={`qgrid ${showBoundaries ? 'show-mapped-boundaries' : ''}`}
+        className="qgrid"
         style={{
           display: 'grid',
           gridTemplateColumns: 'minmax(0, 1.25fr) minmax(0, 0.95fr)',
@@ -109,9 +101,7 @@ export const PuzzleTrial: React.FC<PuzzleTrialProps> = ({
         <section className="panel qpanel" style={{ minWidth: 0 }}>
           <div className="phead" style={{ marginBottom: '12px' }}>
             <div>
-              <span className="eyebrow">
-                Trial {trialNumber} of {totalTrials}
-              </span>
+              <span className="eyebrow">Problem {trialNumber}</span>
               <h2 className="ptitle">Which figure completes A : B :: C : ?</h2>
             </div>
             <span className="pill">
@@ -137,7 +127,7 @@ export const PuzzleTrial: React.FC<PuzzleTrialProps> = ({
           <div className="edge" style={{ marginTop: '16px', borderTop: '1px solid var(--line)', paddingTop: '12px' }}>
             <div className="l meta">
               <Icon name="i-pointer" size="sm" />
-              <span>{selectedOption ? `Option ${selectedOption} chosen` : 'Pick an option'}</span>
+              <span>{selectedOption ? `Option ${selectedOption} selected` : 'Select an option to confirm'}</span>
             </div>
             <div className="r">
               <button
@@ -145,6 +135,7 @@ export const PuzzleTrial: React.FC<PuzzleTrialProps> = ({
                 className="ibtn tb primary"
                 disabled={selectedOption === null}
                 onClick={() => selectedOption !== null && onAnswerConfirmed(selectedOption, hintsUsed)}
+                style={{ borderRadius: '8px' }}
               >
                 <Icon name="i-check" />
                 <span>Confirm answer</span>

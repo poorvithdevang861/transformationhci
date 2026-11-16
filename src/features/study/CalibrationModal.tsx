@@ -87,7 +87,7 @@ export const CalibrationModal: React.FC<CalibrationModalProps> = ({ isOpen, onCl
                 cursor: isDone ? 'default' : 'pointer',
                 display: 'grid',
                 placeItems: 'center',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.5)',
+                boxShadow: 'none',
                 transition: 'background-color 0.12s ease, border-color 0.12s ease'
               }}
             >

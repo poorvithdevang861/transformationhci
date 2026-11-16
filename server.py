@@ -44,15 +44,23 @@ class ExperimentServer(http.server.SimpleHTTPRequestHandler):
         parsed = urlparse(self.path)
         if parsed.path == "/api/sessions":
             # Return list of participant session JSONs saved in results/
-            sessions = []
+            # Deduplicate by participant id (keeping latest)
+            sessions_by_id = {}
             if os.path.exists(RESULTS_DIR):
                 for f in sorted(os.listdir(RESULTS_DIR)):
                     if f.startswith("session_") and f.endswith(".json"):
                         try:
                             with open(os.path.join(RESULTS_DIR, f), "r", encoding="utf-8") as fp:
-                                sessions.append(json.load(fp))
+                                sess = json.load(fp)
+                                sid = sess.get("id")
+                                if sid:
+                                    if f == f"session_{sid}.json" or sid not in sessions_by_id:
+                                        sessions_by_id[sid] = sess
+                                    elif len(sess.get("trials", [])) >= len(sessions_by_id[sid].get("trials", [])):
+                                        sessions_by_id[sid] = sess
                         except Exception:
                             pass
+            sessions = list(sessions_by_id.values())
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
@@ -74,32 +82,63 @@ class ExperimentServer(http.server.SimpleHTTPRequestHandler):
                 session_payload = json.loads(post_body.decode("utf-8"))
                 raw_session = session_payload.get("session") or session_payload
                 pid = session_payload.get("id") or raw_session.get("id", "participant")
+                trials = raw_session.get("trials", [])
+                num_trials = len(trials)
+                is_completed = bool(raw_session.get("completedAt"))
                 timestamp_str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
                 formatted_txt = session_payload.get("txt")
                 if not formatted_txt:
                     formatted_txt = f"Participant: {pid}\nCompleted: {timestamp_str}\n"
 
-                # 1. Append to master results.txt
-                with open(RESULTS_FILE, "a", encoding="utf-8") as f:
-                    f.write(formatted_txt)
-
-                # 2. Save individual participant report in results/
-                part_txt_file = os.path.join(RESULTS_DIR, f"results_{pid}_{timestamp_str}.txt")
-                with open(part_txt_file, "w", encoding="utf-8") as f:
-                    f.write(formatted_txt)
-
-                # 3. Save raw session JSON in results/
-                part_json_file = os.path.join(RESULTS_DIR, f"session_{pid}_{timestamp_str}.json")
+                # 1. Update individual participant canonical JSON in results/
+                part_json_file = os.path.join(RESULTS_DIR, f"session_{pid}.json")
                 with open(part_json_file, "w", encoding="utf-8") as f:
                     json.dump(raw_session, f, indent=2)
 
-                print(f"[SUCCESS] Progress and eye-gaze saved for participant {pid} -> {RESULTS_FILE}")
+                # 2. Update individual participant canonical TXT in results/
+                part_txt_file = os.path.join(RESULTS_DIR, f"results_{pid}.txt")
+                with open(part_txt_file, "w", encoding="utf-8") as f:
+                    f.write(formatted_txt)
+
+                # 3. If session completed, create timestamped archive copy
+                if is_completed:
+                    archive_json = os.path.join(RESULTS_DIR, f"session_{pid}_{timestamp_str}.json")
+                    with open(archive_json, "w", encoding="utf-8") as f:
+                        json.dump(raw_session, f, indent=2)
+                    archive_txt = os.path.join(RESULTS_DIR, f"results_{pid}_{timestamp_str}.txt")
+                    with open(archive_txt, "w", encoding="utf-8") as f:
+                        f.write(formatted_txt)
+
+                # 4. Master results.txt: aggregate all canonical results_*.txt files
+                try:
+                    with open(RESULTS_FILE, "w", encoding="utf-8") as mf:
+                        for fname in sorted(os.listdir(RESULTS_DIR)):
+                            if fname.startswith("results_") and fname.endswith(".txt"):
+                                # Check if it's canonical (results_{pid}.txt without second underscore timestamp)
+                                parts = fname[:-4].split("_")
+                                if len(parts) == 2:
+                                    try:
+                                        with open(os.path.join(RESULTS_DIR, fname), "r", encoding="utf-8") as pf:
+                                            mf.write(pf.read())
+                                            mf.write("\n\n")
+                                    except Exception:
+                                        pass
+                except Exception as e:
+                    print(f"[WARN] Error updating master results.txt: {e}")
+
+                last_info = ""
+                if num_trials > 0:
+                    last_t = trials[-1]
+                    last_info = f" | Trial {num_trials}: Choice={last_t.get('choice')} Correct={last_t.get('correct')} Time={last_t.get('timeMs')}ms"
+
+                print(f"[SAVE] Participant {pid}: {num_trials} trial(s) saved{last_info} ({'COMPLETE' if is_completed else 'IN PROGRESS'})")
                 response_payload = {
                     "ok": True,
-                    "message": "Session saved successfully to results.txt and results/",
-                    "participantId": pid,
-                    "resultsFile": RESULTS_FILE,
+                    "message": "Trial and session saved successfully to results/",
+                    "participant": pid,
+                    "trialsSaved": num_trials,
+                    "completed": is_completed
                 }
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")

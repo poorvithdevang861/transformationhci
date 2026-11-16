@@ -51,7 +51,7 @@ export const Modal: React.FC<ModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="panel"
+        className="panel modal-content-animated"
         style={{
           width,
           maxWidth: '100%',
@@ -59,8 +59,8 @@ export const Modal: React.FC<ModalProps> = ({
           overflowY: 'auto',
           borderRadius: '20px',
           padding: '24px 28px',
-          boxShadow: '0 24px 70px -15px rgba(0, 0, 0, 0.75)',
-          border: '1px solid rgba(255, 255, 255, 0.08)'
+          boxShadow: 'none',
+          border: '1px solid var(--line-strong)'
         }}
         onClick={(e) => e.stopPropagation()}
       >

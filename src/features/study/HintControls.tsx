@@ -70,7 +70,7 @@ export const HintControls: React.FC<HintControlsProps> = ({
           aria-label="Next clue"
           title="Next clue"
         >
-          <Icon name="i-s1" size="sm" />
+          <Icon name="i-next" size="sm" />
         </button>
       </div>
 
