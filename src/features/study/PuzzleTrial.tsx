@@ -61,16 +61,8 @@ export const PuzzleTrial: React.FC<PuzzleTrialProps> = ({
           </span>
           <span style={{ color: 'var(--line-strong)' }}>|</span>
           <span className="meta" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-            <span
-              style={{
-                width: '7px',
-                height: '7px',
-                borderRadius: '50%',
-                background: 'var(--ok)',
-                display: 'inline-block'
-              }}
-            />
-            Eye tracking active
+            <span className="live-dot" />
+            <span>Eye tracking active</span>
           </span>
         </div>
 
@@ -82,7 +74,7 @@ export const PuzzleTrial: React.FC<PuzzleTrialProps> = ({
             onClick={() => setShowCalibModal(true)}
             title="Recalibrate 9-point eye tracker"
           >
-            <Icon name="i-crosshair" size="sm" />
+            <Icon name="i-target" size="sm" />
             <span>Calibrate</span>
           </button>
         </div>

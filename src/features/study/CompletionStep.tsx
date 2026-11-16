@@ -59,7 +59,7 @@ export const CompletionStep: React.FC<CompletionStepProps> = ({
               color: 'var(--ok)'
             }}
           >
-            <Icon name="i-check" />
+            <Icon name="i-check-circle" />
           </div>
           <h2 style={{ fontSize: '1.4rem', fontWeight: 600, margin: '0 0 6px' }}>
             Study Complete & Results Saved
@@ -94,16 +94,16 @@ export const CompletionStep: React.FC<CompletionStepProps> = ({
             onClick={handleDownloadTxt}
             style={{ height: '38px', borderRadius: '10px', padding: '0 16px', fontWeight: 600 }}
           >
-            <Icon name="i-download" />
+            <Icon name="i-file-text" size="sm" />
             <span>Download results.txt</span>
           </button>
           <button
             type="button"
-            className="ibtn"
+            className="ibtn tb"
             onClick={handleDownloadJson}
             style={{ height: '38px', borderRadius: '10px', padding: '0 16px', fontWeight: 500 }}
           >
-            <Icon name="i-code" />
+            <Icon name="i-code" size="sm" />
             <span>Download JSON</span>
           </button>
         </div>
@@ -111,20 +111,20 @@ export const CompletionStep: React.FC<CompletionStepProps> = ({
         <div className="edge" style={{ borderTop: '1px solid var(--line)', paddingTop: '16px', justifyContent: 'center', gap: '12px' }}>
           <button
             type="button"
-            className="ibtn"
+            className="ibtn tb"
             onClick={onNewSession}
             style={{ height: '36px', borderRadius: '8px', padding: '0 14px' }}
           >
-            <Icon name="i-home" />
+            <Icon name="i-replay" size="sm" />
             <span>New Session</span>
           </button>
           <button
             type="button"
-            className="ibtn"
+            className="ibtn tb"
             onClick={onOpenResearcher}
             style={{ height: '36px', borderRadius: '8px', padding: '0 14px' }}
           >
-            <Icon name="i-chart" />
+            <Icon name="i-chart" size="sm" />
             <span>Researcher Dashboard</span>
           </button>
         </div>

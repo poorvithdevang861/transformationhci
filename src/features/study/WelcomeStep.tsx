@@ -51,7 +51,7 @@ export const WelcomeStep: React.FC<WelcomeStepProps> = ({ onStart }) => {
               color: 'var(--ink)'
             }}
           >
-            <Icon name="i-crosshair" />
+            <Icon name="i-shapes" />
           </div>
           <h2 style={{ margin: '0 0 6px', fontSize: '1.4rem', fontWeight: 600, letterSpacing: '-0.01em' }}>
             Geometric Reasoning Study

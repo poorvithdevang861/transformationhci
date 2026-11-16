@@ -68,24 +68,24 @@ export const ResearcherDashboard: React.FC = () => {
         </div>
         <div className="r" style={{ gap: '8px' }}>
           <button type="button" className="ibtn tb" onClick={() => downloadBlob(exportGazeCsv(sessions), 'gaze_metrics.csv', 'text/csv')}>
-            <Icon name="i-eye" />
-            Gaze CSV
+            <Icon name="i-eye" size="sm" />
+            <span>Gaze CSV</span>
           </button>
           <button type="button" className="ibtn tb" onClick={() => downloadBlob(exportTrialsCsv(sessions), 'trials.csv', 'text/csv')}>
-            <Icon name="i-download" />
-            Trials CSV
+            <Icon name="i-file-text" size="sm" />
+            <span>Trials CSV</span>
           </button>
           <button type="button" className="ibtn tb" onClick={() => downloadBlob(exportSessionsCsv(sessions), 'sessions.csv', 'text/csv')}>
-            <Icon name="i-download" />
-            Sessions CSV
+            <Icon name="i-download" size="sm" />
+            <span>Sessions CSV</span>
           </button>
           <button type="button" className="ibtn tb" onClick={handleExportJson}>
-            <Icon name="i-code" />
-            All JSON
+            <Icon name="i-code" size="sm" />
+            <span>All JSON</span>
           </button>
           <label className="ibtn tb" style={{ cursor: 'pointer' }}>
-            <Icon name="i-pencil" />
-            Import JSON
+            <Icon name="i-upload" size="sm" />
+            <span>Import JSON</span>
             <input type="file" accept=".json,application/json" onChange={handleImportJson} hidden />
           </label>
         </div>
