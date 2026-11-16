@@ -26,14 +26,19 @@ export class LocalStore {
   public static saveSession(session: ExperimentSession) {
     const list = this.getSessions();
     const idx = list.findIndex((s) => s.id === session.id);
-    if (idx >= 0) list[idx] = session;
-    else list.push(session);
+    if (idx >= 0) {
+      list[idx] = session;
+    } else {
+      list.unshift(session); // Insert new session at top
+    }
+    // Always sort descending so newest session is at the top
+    list.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
     try {
       localStorage.setItem(SESSIONS_KEY, JSON.stringify(list));
     } catch (e) {
       console.warn('LocalStorage full, removing older sessions:', e);
       if (list.length > 5) {
-        list.shift();
+        list.pop(); // Remove oldest from end
         localStorage.setItem(SESSIONS_KEY, JSON.stringify(list));
       }
     }

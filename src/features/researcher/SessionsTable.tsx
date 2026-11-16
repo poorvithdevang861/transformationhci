@@ -13,6 +13,13 @@ export const SessionsTable: React.FC<SessionsTableProps> = ({
   onInspectSession,
   onDeleteAll
 }) => {
+  // Sort sessions descending by creation time (newest at the top)
+  const sortedSessions = [...sessions].sort((a, b) => {
+    const timeA = new Date(a.createdAt || 0).getTime();
+    const timeB = new Date(b.createdAt || 0).getTime();
+    return timeB - timeA;
+  });
+
   return (
     <div className="panel" style={{ marginTop: '16px' }}>
       <div className="edge" style={{ marginBottom: '12px' }}>
@@ -21,9 +28,14 @@ export const SessionsTable: React.FC<SessionsTableProps> = ({
           <h2 className="ptitle">Recorded Sessions</h2>
         </div>
         {sessions.length > 0 && (
-          <button type="button" className="ibtn tb danger" onClick={onDeleteAll}>
-            <Icon name="i-trash" />
-            Delete All
+          <button
+            type="button"
+            className="ibtn tb danger"
+            onClick={onDeleteAll}
+            style={{ height: '32px', borderRadius: '8px', padding: '0 12px' }}
+          >
+            <Icon name="i-trash" size="sm" />
+            <span>Delete All</span>
           </button>
         )}
       </div>
@@ -43,14 +55,14 @@ export const SessionsTable: React.FC<SessionsTableProps> = ({
             </tr>
           </thead>
           <tbody>
-            {sessions.length === 0 ? (
+            {sortedSessions.length === 0 ? (
               <tr>
                 <td colSpan={8} style={{ padding: '24px', textAlign: 'center', color: 'var(--faint)' }}>
                   No sessions recorded yet on this machine.
                 </td>
               </tr>
             ) : (
-              sessions.map((s) => {
+              sortedSessions.map((s) => {
                 const trials = s.trials || [];
                 const correct = trials.filter((t) => t.correct).length;
                 const acc = trials.length > 0 ? `${((correct / trials.length) * 100).toFixed(0)}%` : '–';

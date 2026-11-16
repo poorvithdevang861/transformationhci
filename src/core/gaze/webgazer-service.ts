@@ -117,12 +117,24 @@ class WebGazerService {
   public stopRecording(rootViewport?: HTMLElement | null): GazeSessionResult {
     this.isRecording = false;
     const duration = Math.round(performance.now() - this.recordingStartTime);
-    const fixations = detectFixations(this.recordedSamples);
+
+    // Compute coordinate offset so samples and fixations align identically with DOM boundaries
+    const rootRect = rootViewport ? rootViewport.getBoundingClientRect() : null;
+    const offsetX = rootRect ? Math.round(rootRect.left) : 0;
+    const offsetY = rootRect ? Math.round(rootRect.top) : 0;
+
+    const normalizedSamples = this.recordedSamples.map((s) => ({
+      ...s,
+      x: s.x - offsetX,
+      y: s.y - offsetY
+    }));
+
+    const fixations = detectFixations(normalizedSamples);
     const aoiMetrics = computeAoiMetrics(this.recordedSamples, fixations, duration);
     const boundaries = extractDomBoundaries(rootViewport ?? document.body);
 
     return {
-      samples: [...this.recordedSamples],
+      samples: normalizedSamples,
       fixations,
       aoiMetrics,
       boundaries,

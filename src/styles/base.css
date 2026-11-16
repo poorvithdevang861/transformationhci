@@ -249,6 +249,20 @@ button {
   color: #000000;
 }
 
+.ibtn.danger,
+.ibtn.tb.danger {
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.ibtn.danger:hover:not(:disabled),
+.ibtn.tb.danger:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: #ef4444;
+  color: #f87171;
+}
+
 /* Typography hierarchy (sentence case, quiet meta) */
 .eyebrow {
   font-size: 0.74rem;

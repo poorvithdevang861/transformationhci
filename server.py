@@ -61,6 +61,8 @@ class ExperimentServer(http.server.SimpleHTTPRequestHandler):
                         except Exception:
                             pass
             sessions = list(sessions_by_id.values())
+            # Sort newest session to the top
+            sessions.sort(key=lambda s: s.get("completedAt") or s.get("createdAt") or "", reverse=True)
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
@@ -110,20 +112,29 @@ class ExperimentServer(http.server.SimpleHTTPRequestHandler):
                     with open(archive_txt, "w", encoding="utf-8") as f:
                         f.write(formatted_txt)
 
-                # 4. Master results.txt: aggregate all canonical results_*.txt files
+                # 4. Master results.txt: aggregate all canonical results_*.txt files (newest at the top)
                 try:
+                    canonical_files = []
+                    for fname in os.listdir(RESULTS_DIR):
+                        if fname.startswith("results_") and fname.endswith(".txt"):
+                            parts = fname[:-4].split("_")
+                            if len(parts) == 2:
+                                canonical_files.append(fname)
+
+                    # Sort descending by file modification time so newest participants are at top
+                    canonical_files.sort(
+                        key=lambda fn: os.path.getmtime(os.path.join(RESULTS_DIR, fn)),
+                        reverse=True
+                    )
+
                     with open(RESULTS_FILE, "w", encoding="utf-8") as mf:
-                        for fname in sorted(os.listdir(RESULTS_DIR)):
-                            if fname.startswith("results_") and fname.endswith(".txt"):
-                                # Check if it's canonical (results_{pid}.txt without second underscore timestamp)
-                                parts = fname[:-4].split("_")
-                                if len(parts) == 2:
-                                    try:
-                                        with open(os.path.join(RESULTS_DIR, fname), "r", encoding="utf-8") as pf:
-                                            mf.write(pf.read())
-                                            mf.write("\n\n")
-                                    except Exception:
-                                        pass
+                        for fname in canonical_files:
+                            try:
+                                with open(os.path.join(RESULTS_DIR, fname), "r", encoding="utf-8") as pf:
+                                    mf.write(pf.read())
+                                    mf.write("\n\n")
+                            except Exception:
+                                pass
                 except Exception as e:
                     print(f"[WARN] Error updating master results.txt: {e}")
 
