@@ -12,9 +12,9 @@ export const WelcomeStep: React.FC<WelcomeStepProps> = ({ onStart }) => {
   const [consent, setConsent] = useState(false);
 
   const modes = [
-    { id: 'animation', icon: 'i-anim', label: 'Animated', sub: 'Morphing shapes' },
-    { id: 'static', icon: 'i-text', label: 'Static', sub: 'Text explanations' },
-    { id: 'randomise', icon: 'i-shuffle', label: 'Mixed', sub: 'Alternating' }
+    { id: 'animation', icon: 'i-puzzle-anim', label: 'Animated', sub: 'Morphing shapes' },
+    { id: 'static', icon: 'i-puzzle-static', label: 'Static', sub: 'Text explanations' },
+    { id: 'randomise', icon: 'i-puzzle-mixed', label: 'Mixed', sub: 'Alternating' }
   ] as const;
 
   const devices = [
@@ -51,7 +51,7 @@ export const WelcomeStep: React.FC<WelcomeStepProps> = ({ onStart }) => {
               color: 'var(--ink)'
             }}
           >
-            <Icon name="i-shapes" />
+            <Icon name="i-puzzle" size="lg" />
           </div>
           <h2 style={{ margin: '0 0 6px', fontSize: '1.4rem', fontWeight: 600, letterSpacing: '-0.01em' }}>
             Geometric Reasoning Study

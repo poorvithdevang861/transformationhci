@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Modal } from '../../components/common/Modal';
+import { Icon } from '../../components/common/Icon';
 
 interface CalibrationModalProps {
   isOpen: boolean;
@@ -95,6 +96,19 @@ export const CalibrationModal: React.FC<CalibrationModalProps> = ({ isOpen, onCl
             </button>
           );
         })}
+      </div>
+
+      <div className="edge" style={{ marginTop: '14px', borderTop: '1px solid var(--line)', paddingTop: '12px' }}>
+        <button
+          type="button"
+          className="ibtn tb"
+          onClick={() => onClose(false)}
+          style={{ height: '36px', padding: '0 14px', borderRadius: '8px' }}
+        >
+          <Icon name="i-arrow-left" size="sm" />
+          <span>Back to Study</span>
+        </button>
+        <span className="meta">Click all 9 points to finish calibration</span>
       </div>
     </Modal>
   );

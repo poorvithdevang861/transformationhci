@@ -61,7 +61,7 @@ export const Header: React.FC<HeaderProps> = ({
               color: 'var(--ink)'
             }}
           >
-            <Icon name="i-anim" size="sm" />
+            <Icon name="i-puzzle" size="sm" />
           </div>
           <div>
             <h1 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, lineHeight: 1.2 }}>

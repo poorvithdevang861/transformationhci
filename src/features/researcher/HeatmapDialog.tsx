@@ -81,7 +81,17 @@ export const HeatmapDialog: React.FC<HeatmapDialogProps> = ({ session, onClose }
     >
       <div className="edge" style={{ marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span className="lbl">Trial:</span>
+          <button
+            type="button"
+            className="ibtn tb"
+            onClick={onClose}
+            style={{ height: '32px', padding: '0 10px', borderRadius: '7px' }}
+            title="Return to sessions list"
+          >
+            <Icon name="i-arrow-left" size="sm" />
+            <span>Back</span>
+          </button>
+          <span className="lbl" style={{ marginLeft: '4px' }}>Trial:</span>
           <SegmentedControl<number>
             value={selectedTrialIdx}
             onChange={setSelectedTrialIdx}
@@ -92,7 +102,7 @@ export const HeatmapDialog: React.FC<HeatmapDialogProps> = ({ session, onClose }
         {currentTrial && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem' }}>
             <span className="pill">
-              <Icon name={currentTrial.condition === 'animated' ? 'i-anim' : 'i-text'} size="sm" />
+              <Icon name={currentTrial.condition === 'animated' ? 'i-puzzle-anim' : 'i-puzzle-static'} size="sm" />
               {currentTrial.condition === 'animated' ? 'Animated' : 'Static'}
             </span>
             <span

@@ -28,7 +28,7 @@ export const StudyContainer: React.FC<StudyContainerProps> = ({ onNavigate, onSt
   const [trialStartTime, setTrialStartTime] = useState(0);
 
   useEffect(() => {
-    onStepChange?.(step === 'welcome');
+    onStepChange?.(step === 'welcome' || step === 'intro');
   }, [step, onStepChange]);
 
   const config = LocalStore.getConfig();
@@ -56,6 +56,13 @@ export const StudyContainer: React.FC<StudyContainerProps> = ({ onNavigate, onSt
     setTrialStartTime(performance.now());
     gazeTracker.startRecording();
     setStep('trial');
+  };
+
+  const handleExitStudy = () => {
+    if (window.confirm('Exit study and return to home screen? Current session progress will be cancelled.')) {
+      gazeTracker.stopRecording();
+      setStep('welcome');
+    }
   };
 
   const handleAnswerTrial = (choice: number, hintsUsed: number) => {
@@ -109,7 +116,13 @@ export const StudyContainer: React.FC<StudyContainerProps> = ({ onNavigate, onSt
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%', paddingBottom: '32px' }}>
       {step === 'welcome' && <WelcomeStep onStart={handleStartWelcome} />}
-      {step === 'intro' && session && <IntroStep mode={session.mode} onBegin={handleBeginTrials} />}
+      {step === 'intro' && session && (
+        <IntroStep
+          mode={session.mode}
+          onBegin={handleBeginTrials}
+          onBack={() => setStep('welcome')}
+        />
+      )}
       {step === 'trial' && session && (
         <PuzzleTrial
           setIdx={config.mainSet}
@@ -120,11 +133,12 @@ export const StudyContainer: React.FC<StudyContainerProps> = ({ onNavigate, onSt
           hintWindows={config.hintWindows}
           animSeconds={config.animSeconds}
           onAnswerConfirmed={handleAnswerTrial}
+          onExitStudy={handleExitStudy}
         />
       )}
       {step === 'effort' && <EffortStep onComplete={(r) => updateSurveyAndNext('mentalEffort', r, 'tlx')} />}
-      {step === 'tlx' && <NasaTlxStep onComplete={(tlx) => updateSurveyAndNext('tlx', tlx, 'agency')} />}
-      {step === 'agency' && <AgencyStep onComplete={(ag) => updateSurveyAndNext('agency', ag, 'sus')} />}
+      {step === 'tlx' && <NasaTlxStep onComplete={(tlx) => updateSurveyAndNext('tlx', tlx, 'agency')} onBack={() => setStep('effort')} />}
+      {step === 'agency' && <AgencyStep onComplete={(ag) => updateSurveyAndNext('agency', ag, 'sus')} onBack={() => setStep('tlx')} />}
       {step === 'sus' && <SusStep onComplete={(sus, comments) => {
         if (session) {
           const updated = { ...session, survey: { ...session.survey, sus, comments }, completedAt: new Date().toISOString() };
@@ -133,7 +147,7 @@ export const StudyContainer: React.FC<StudyContainerProps> = ({ onNavigate, onSt
           saveResultsToServer(updated);
           setStep('done');
         }
-      }} />}
+      }} onBack={() => setStep('agency')} />}
       {step === 'done' && session && (
         <CompletionStep session={session} onNewSession={() => setStep('welcome')} onOpenResearcher={() => onNavigate('researcher')} />
       )}

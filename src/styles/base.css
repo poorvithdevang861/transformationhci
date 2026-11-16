@@ -112,7 +112,7 @@
 
   /* Landing page background tokens (Light) */
   --landing-mound-opacity: 1;
-  --landing-mound-filter: saturate(1.02);
+  --landing-mound-filter: none;
 }
 
 html {
@@ -234,6 +234,16 @@ button {
 .i.sm {
   width: 15px;
   height: 15px;
+}
+
+.i.lg {
+  width: 22px;
+  height: 22px;
+}
+
+.i.solid {
+  fill: currentColor;
+  stroke: none;
 }
 
 /* Quiet buttons with robust auto-width and centered text */

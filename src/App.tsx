@@ -62,11 +62,11 @@ export const App: React.FC = () => {
               onStepChange={setIsStudyLanding}
             />
           )}
-          {currentView === 'researcher' && <ResearcherDashboard />}
+          {currentView === 'researcher' && <ResearcherDashboard onNavigate={setCurrentView} />}
         </main>
       </div>
 
-      {isLandingPage && <LandingBackground />}
+      {isLandingPage && <LandingBackground theme={theme} />}
     </>
   );
 };

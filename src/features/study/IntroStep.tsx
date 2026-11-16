@@ -4,9 +4,10 @@ import { Icon } from '../../components/common/Icon';
 interface IntroStepProps {
   mode: 'static' | 'animation' | 'randomise';
   onBegin: () => void;
+  onBack?: () => void;
 }
 
-export const IntroStep: React.FC<IntroStepProps> = ({ mode, onBegin }) => {
+export const IntroStep: React.FC<IntroStepProps> = ({ mode, onBegin, onBack }) => {
   const isAnim = mode === 'animation';
 
   return (
@@ -65,8 +66,25 @@ export const IntroStep: React.FC<IntroStepProps> = ({ mode, onBegin }) => {
         </div>
 
         <div className="edge" style={{ borderTop: '1px solid var(--line)', paddingTop: '16px' }}>
-          <div className="l meta" style={{ fontSize: '0.82rem' }}>
-            10 trials · Eye tracking active
+          <div className="l">
+            {onBack && (
+              <button
+                type="button"
+                className="ibtn tb"
+                onClick={onBack}
+                style={{
+                  height: '40px',
+                  padding: '0 14px',
+                  borderRadius: '10px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <Icon name="i-arrow-left" size="sm" />
+                <span>Back</span>
+              </button>
+            )}
           </div>
           <div className="r">
             <button

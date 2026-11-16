@@ -9,8 +9,13 @@ import { HeatmapDialog } from './HeatmapDialog';
 import { exportGazeCsv, exportTrialsCsv, exportSessionsCsv } from '../../core/storage/csv-exporter';
 import { downloadBlob, fetchSessionsFromServer } from '../../core/storage/api-client';
 import { Icon } from '../../components/common/Icon';
+import { AppView } from '../../components/common/Header';
 
-export const ResearcherDashboard: React.FC = () => {
+interface ResearcherDashboardProps {
+  onNavigate?: (view: AppView) => void;
+}
+
+export const ResearcherDashboard: React.FC<ResearcherDashboardProps> = ({ onNavigate }) => {
   const [sessions, setSessions] = useState<ExperimentSession[]>([]);
   const [config, setConfig] = useState<StudyConfig>(() => LocalStore.getConfig());
   const [inspectSession, setInspectSession] = useState<ExperimentSession | null>(null);
@@ -62,9 +67,23 @@ export const ResearcherDashboard: React.FC = () => {
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%', paddingBottom: '32px' }}>
       <div className="edge" style={{ marginBottom: '14px' }}>
-        <div>
-          <div className="eyebrow">Experiment Control</div>
-          <h1 style={{ margin: 0 }}>Researcher Dashboard</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {onNavigate && (
+            <button
+              type="button"
+              className="ibtn tb"
+              onClick={() => onNavigate('study')}
+              style={{ height: '36px', padding: '0 12px', borderRadius: '8px' }}
+              title="Return to Participant Study"
+            >
+              <Icon name="i-arrow-left" size="sm" />
+              <span>Back to Study</span>
+            </button>
+          )}
+          <div>
+            <div className="eyebrow">Experiment Control</div>
+            <h1 style={{ margin: 0 }}>Researcher Dashboard</h1>
+          </div>
         </div>
         <div className="r" style={{ gap: '8px' }}>
           <button type="button" className="ibtn tb" onClick={() => downloadBlob(exportGazeCsv(sessions), 'gaze_metrics.csv', 'text/csv')}>

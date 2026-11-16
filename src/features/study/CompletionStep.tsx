@@ -115,8 +115,8 @@ export const CompletionStep: React.FC<CompletionStepProps> = ({
             onClick={onNewSession}
             style={{ height: '36px', borderRadius: '8px', padding: '0 14px' }}
           >
-            <Icon name="i-replay" size="sm" />
-            <span>New Session</span>
+            <Icon name="i-arrow-left" size="sm" />
+            <span>Back to Home</span>
           </button>
           <button
             type="button"

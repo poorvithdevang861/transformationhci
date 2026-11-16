@@ -12,9 +12,10 @@ const TLX_DIMENSIONS = [
 
 interface NasaTlxStepProps {
   onComplete: (ratings: Record<string, number>) => void;
+  onBack?: () => void;
 }
 
-export const NasaTlxStep: React.FC<NasaTlxStepProps> = ({ onComplete }) => {
+export const NasaTlxStep: React.FC<NasaTlxStepProps> = ({ onComplete, onBack }) => {
   const [values, setValues] = useState<Record<string, number>>({
     mental: 50,
     physical: 20,
@@ -79,8 +80,29 @@ export const NasaTlxStep: React.FC<NasaTlxStepProps> = ({ onComplete }) => {
         </div>
 
         <div className="edge" style={{ borderTop: '1px solid var(--line)', paddingTop: '16px' }}>
-          <div className="l meta" style={{ fontSize: '0.82rem' }}>
-            6 workload dimensions
+          <div className="l">
+            {onBack ? (
+              <button
+                type="button"
+                className="ibtn tb"
+                onClick={onBack}
+                style={{
+                  height: '40px',
+                  padding: '0 14px',
+                  borderRadius: '10px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <Icon name="i-arrow-left" size="sm" />
+                <span>Back</span>
+              </button>
+            ) : (
+              <div className="meta" style={{ fontSize: '0.82rem' }}>
+                6 workload dimensions
+              </div>
+            )}
           </div>
           <div className="r">
             <button

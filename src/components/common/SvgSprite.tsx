@@ -53,12 +53,49 @@ export const SvgSprite: React.FC = () => {
         <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
         <polyline points="12 5 19 12 12 19" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       </symbol>
+      <symbol id="i-arrow-left" viewBox="0 0 24 24">
+        <line x1="19" y1="12" x2="5" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <polyline points="12 19 5 12 12 5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </symbol>
       <symbol id="i-pointer" viewBox="0 0 24 24">
         <polygon points="3 3 10.5 21 13.5 13.5 21 10.5 3 3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       </symbol>
       <symbol id="i-anim" viewBox="0 0 24 24">
         <rect x="2" y="4" width="20" height="16" rx="3" fill="none" stroke="currentColor" strokeWidth="2" />
         <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none" />
+      </symbol>
+      {/* Solid Jigsaw Puzzle Suite */}
+      <symbol id="i-puzzle" viewBox="0 0 24 24">
+        <path
+          style={{ fill: 'currentColor', stroke: 'none' }}
+          d="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5a2.5 2.5 0 0 0-5 0V5H4c-1.1 0-1.99.9-1.99 2v3.8H3.5c1.49 0 2.7 1.21 2.7 2.7s-1.21 2.7-2.7 2.7H2V20c0 1.1.9 2 2 2h3.8v-1.5c0-1.49 1.21-2.7 2.7-2.7 1.49 0 2.7 1.21 2.7 2.7V22H17c1.1 0 2-.9 2-2v-4h1.5a2.5 2.5 0 0 0 0-5z"
+        />
+      </symbol>
+      <symbol id="i-puzzle-static" viewBox="0 0 24 24">
+        <path
+          style={{ fill: 'currentColor', stroke: 'none' }}
+          d="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5a2.5 2.5 0 0 0-5 0V5H4c-1.1 0-1.99.9-1.99 2v3.8H3.5c1.49 0 2.7 1.21 2.7 2.7s-1.21 2.7-2.7 2.7H2V20c0 1.1.9 2 2 2h3.8v-1.5c0-1.49 1.21-2.7 2.7-2.7 1.49 0 2.7 1.21 2.7 2.7V22H17c1.1 0 2-.9 2-2v-4h1.5a2.5 2.5 0 0 0 0-5z"
+        />
+      </symbol>
+      <symbol id="i-puzzle-anim" viewBox="0 0 24 24">
+        <path
+          style={{ fill: 'currentColor', stroke: 'none' }}
+          fillRule="evenodd"
+          clipRule="evenodd"
+          d="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5a2.5 2.5 0 0 0-5 0V5H4c-1.1 0-1.99.9-1.99 2v3.8H3.5c1.49 0 2.7 1.21 2.7 2.7s-1.21 2.7-2.7 2.7H2V20c0 1.1.9 2 2 2h3.8v-1.5c0-1.49 1.21-2.7 2.7-2.7 1.49 0 2.7 1.21 2.7 2.7V22H17c1.1 0 2-.9 2-2v-4h1.5a2.5 2.5 0 0 0 0-5z M9.2 9a.8.8 0 0 0-1.2.7v5.6a.8.8 0 0 0 1.2.7l5-2.8a.8.8 0 0 0 0-1.4l-5-2.8z"
+        />
+      </symbol>
+      <symbol id="i-puzzle-mixed" viewBox="0 0 24 24">
+        <path
+          style={{ fill: 'currentColor', stroke: 'none' }}
+          d="M4.5 4h6a.8.8 0 0 1 .8.8v4.2c1.3-.2 2.5.6 2.5 2.2 0 1.6-1.2 2.4-2.5 2.2v5.8a.8.8 0 0 1-.8.8h-6A1.5 1.5 0 0 1 3 18.5v-4.3c1.2 0 2.2-.9 2.2-2.2s-1-2.2-2.2-2.2V5.5A1.5 1.5 0 0 1 4.5 4z"
+        />
+        <path
+          style={{ fill: 'currentColor', stroke: 'none' }}
+          fillRule="evenodd"
+          clipRule="evenodd"
+          d="M13.6 4H19.5a1.5 1.5 0 0 1 1.5 1.5v4.2c1.2-.2 2.2.6 2.2 2.2 0 1.6-1 2.4-2.2 2.2v4.4a1.5 1.5 0 0 1-1.5 1.5h-5.9a.8.8 0 0 1-.8-.8v-5.8c1.3.2 2.5-.6 2.5-2.2 0-1.6-1.2-2.4-2.5-2.2V4.8a.8.8 0 0 1 .8-.8z M16.4 10.2a.4.4 0 0 0-.6.35v2.9a.4.4 0 0 0 .6.35l2.4-1.45a.4.4 0 0 0 0-.7l-2.4-1.45z"
+        />
       </symbol>
       <symbol id="i-text" viewBox="0 0 24 24">
         <line x1="4" y1="6" x2="20" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
