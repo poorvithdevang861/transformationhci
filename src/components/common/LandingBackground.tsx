@@ -6,6 +6,10 @@ interface LandingBackgroundProps {
 
 export const LandingBackground: React.FC<LandingBackgroundProps> = ({ theme = 'dark' }) => {
   const isDark = theme === 'dark';
+  const rawPath = isDark ? 'img/landing-dark-bg.jpg' : 'img/landing-bg.png';
+  const imgSrc = typeof document !== 'undefined' && document.baseURI
+    ? new URL(rawPath, document.baseURI).href
+    : rawPath;
 
   return (
     <div
@@ -25,7 +29,7 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({ theme = 'd
           - Light Theme: image.jpeg (wildflower meadow hill) anchored at bottom
       */}
       <img
-        src={isDark ? '/img/landing-dark-bg.jpg' : '/img/landing-bg.png'}
+        src={imgSrc}
         alt=""
         style={{
           position: 'absolute',

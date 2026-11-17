@@ -50,18 +50,16 @@ export function optionCropPosition(n: number): string {
 
 export function sheetUrl(set: ProblemSet, idx: number): string {
   const filename = `problem_${idx + 1}.png`;
-  // When running over web server (Vite or server.py)
-  if (typeof window !== 'undefined' && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
-    const dir = set.dir.startsWith('/') ? set.dir : `/${set.dir}`;
-    return `url("${dir}${filename}")`;
-  }
-  // When running on file:// or SSR, safely encode parentheses for CSS
+  const cleanDir = set.dir.replace(/^\//, '');
+  const path = cleanDir + filename;
+
+  // Resolves relative to document.baseURI (works with local Vite, GitHub Pages subpaths, and file://)
   if (typeof document !== 'undefined' && document.baseURI) {
     try {
-      const fullUrl = new URL(set.dir + filename, document.baseURI).href;
+      const fullUrl = new URL(path, document.baseURI).href;
       const safeUrl = fullUrl.replace(/\(/g, '%28').replace(/\)/g, '%29');
       return `url("${safeUrl}")`;
     } catch {}
   }
-  return `url("/${set.dir}${filename}")`;
+  return `url("${path}")`;
 }
