@@ -25,12 +25,37 @@ export const HeatmapDialog: React.FC<HeatmapDialogProps> = ({ session, onClose }
     if (!canvasRef.current || !currentTrial) return;
     const canvas = canvasRef.current;
 
-    // Determine coordinate extent from boundaries to ensure options at bottom are fully visible
+    // Determine coordinate extent from boundaries to ensure options and hint panel are fully visible
     let maxBoundX = 720;
     let maxBoundY = 680;
     let minBoundX = 0;
     let minBoundY = 0;
-    const bList = currentTrial.boundaries ? Object.values(currentTrial.boundaries) : [];
+
+    // Ensure all defined boundaries include the complete hint panel box
+    const rawBoundaries = currentTrial.boundaries || {};
+    const boundaries = { ...rawBoundaries };
+    if (!boundaries['hint-panel'] && !boundaries['hints']) {
+      const bVals = Object.values(rawBoundaries);
+      if (bVals.length > 0) {
+        const qMaxX = Math.max(...bVals.map((b) => b.x + b.w));
+        const qMaxY = Math.max(...bVals.map((b) => b.y + b.h));
+        const hintX = qMaxX + 16;
+        const hintW = Math.max(340, Math.round(qMaxX * 0.76));
+        const hintH = Math.max(480, qMaxY);
+        boundaries['hint-panel'] = {
+          x: hintX,
+          y: 0,
+          w: hintW,
+          h: hintH,
+          key: 'hint-panel',
+          name: 'Hints Panel',
+          color: '#22c55e',
+          tag: '[Green]'
+        };
+      }
+    }
+
+    const bList = Object.values(boundaries);
 
     if (bList.length > 0) {
       maxBoundX = Math.max(...bList.map((b) => b.x + b.w));
@@ -64,8 +89,8 @@ export const HeatmapDialog: React.FC<HeatmapDialogProps> = ({ session, onClose }
 
     drawHeatmap(canvas, fixations, { radius: 38, opacity: 0.82 });
     drawScanpath(canvas, fixations, { keepHeatmap: true });
-    if (currentTrial.boundaries) {
-      drawBoundaries(canvas, currentTrial.boundaries, true);
+    if (bList.length > 0) {
+      drawBoundaries(canvas, boundaries, true);
     }
   }, [currentTrial]);
 

@@ -67,8 +67,8 @@ export const StudyContainer: React.FC<StudyContainerProps> = ({ onNavigate, onSt
 
   const handleAnswerTrial = (choice: number, hintsUsed: number) => {
     if (!session) return;
-    const qEl = document.querySelector('.qpanel') as HTMLElement | null;
-    const gazeRes = gazeTracker.stopRecording(qEl);
+    const qGrid = (document.querySelector('.qgrid') || document.querySelector('.qpanel')) as HTMLElement | null;
+    const gazeRes = gazeTracker.stopRecording(qGrid);
     const problemIdx = mainQuestions[trialIndex];
     const correctAns = SETS[config.mainSet].answers[problemIdx];
     const elapsed = Math.round(performance.now() - trialStartTime);

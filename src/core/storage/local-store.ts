@@ -23,6 +23,29 @@ export class LocalStore {
     }
   }
 
+  public static getNextParticipantId(): string {
+    const list = this.getSessions();
+    let max = 0;
+    for (const s of list) {
+      if (!s.id) continue;
+      const match = s.id.match(/^P-?ID(\d+)$/i);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num > max) max = num;
+      }
+    }
+    try {
+      const stored = localStorage.getItem('ta-last-pid-idx');
+      if (stored) {
+        const num = parseInt(stored, 10);
+        if (num > max) max = num;
+      }
+    } catch {}
+
+    const next = max + 1;
+    return `P-ID${String(next).padStart(3, '0')}`;
+  }
+
   public static saveSession(session: ExperimentSession) {
     const list = this.getSessions();
     const idx = list.findIndex((s) => s.id === session.id);
@@ -30,6 +53,17 @@ export class LocalStore {
       list[idx] = session;
     } else {
       list.unshift(session); // Insert new session at top
+    }
+    // Track numeric PID index
+    const match = session.id?.match(/^P-?ID(\d+)$/i);
+    if (match) {
+      try {
+        const num = parseInt(match[1], 10);
+        const stored = parseInt(localStorage.getItem('ta-last-pid-idx') || '0', 10);
+        if (num > stored) {
+          localStorage.setItem('ta-last-pid-idx', String(num));
+        }
+      } catch {}
     }
     // Always sort descending so newest session is at the top
     list.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());

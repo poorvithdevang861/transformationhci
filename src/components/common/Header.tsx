@@ -1,5 +1,6 @@
 import React from 'react';
 import { Icon } from './Icon';
+import { HeroPuzzleIllustration } from './HeroPuzzleIllustration';
 
 export type AppView = 'study' | 'researcher';
 
@@ -53,19 +54,16 @@ export const Header: React.FC<HeaderProps> = ({
             style={{
               width: '32px',
               height: '32px',
-              borderRadius: '9px',
-              background: 'var(--raised)',
-              border: '1px solid var(--line)',
               display: 'grid',
               placeItems: 'center',
-              color: 'var(--ink)'
+              flex: 'none'
             }}
           >
-            <Icon name="i-puzzle" size="sm" />
+            <HeroPuzzleIllustration size={30} idPrefix="nav" />
           </div>
           <div>
             <h1 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, lineHeight: 1.2 }}>
-              Transformation Animator
+              Transformation-EyeGaze Study
             </h1>
             <span className="meta" style={{ fontSize: '0.74rem' }}>Cognitive Science Experiment</span>
           </div>

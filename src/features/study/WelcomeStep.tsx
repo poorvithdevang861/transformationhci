@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Icon } from '../../components/common/Icon';
+import { HeroPuzzleIllustration } from '../../components/common/HeroPuzzleIllustration';
+import { LocalStore } from '../../core/storage/local-store';
 
 interface WelcomeStepProps {
   onStart: (pid: string, mode: 'static' | 'animation' | 'randomise', device: string) => void;
 }
 
 export const WelcomeStep: React.FC<WelcomeStepProps> = ({ onStart }) => {
-  const [pid, setPid] = useState(() => 'P-' + Math.random().toString(36).substring(2, 7).toUpperCase());
+  const [pid] = useState(() => LocalStore.getNextParticipantId());
   const [mode, setMode] = useState<'static' | 'animation' | 'randomise'>('animation');
   const [device, setDevice] = useState<'laptop' | 'tablet'>('laptop');
   const [consent, setConsent] = useState(false);
@@ -38,23 +40,11 @@ export const WelcomeStep: React.FC<WelcomeStepProps> = ({ onStart }) => {
       >
         {/* Header */}
         <div style={{ textAlign: 'center' }}>
-          <div
-            style={{
-              width: '44px',
-              height: '44px',
-              margin: '0 auto 12px',
-              borderRadius: '12px',
-              background: 'var(--raised)',
-              border: '1px solid var(--line)',
-              display: 'grid',
-              placeItems: 'center',
-              color: 'var(--ink)'
-            }}
-          >
-            <Icon name="i-puzzle" size="lg" />
+          <div style={{ margin: '0 auto 12px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+            <HeroPuzzleIllustration size={60} />
           </div>
-          <h2 style={{ margin: '0 0 6px', fontSize: '1.4rem', fontWeight: 600, letterSpacing: '-0.01em' }}>
-            Geometric Reasoning Study
+          <h2 style={{ margin: '0 0 6px', fontSize: '1.45rem', fontWeight: 600, letterSpacing: '-0.01em' }}>
+            Transformation-EyeGaze Study
           </h2>
           <p style={{ margin: 0, color: 'var(--muted)', fontSize: '0.9rem', lineHeight: 1.5 }}>
             Infer the rule from A to B and apply it to C across 10 visual analogy puzzles.
@@ -109,7 +99,9 @@ export const WelcomeStep: React.FC<WelcomeStepProps> = ({ onStart }) => {
             <input
               id="pidInput"
               value={pid}
-              onChange={(e) => setPid(e.target.value)}
+              readOnly
+              tabIndex={-1}
+              aria-readonly="true"
               style={{
                 width: '100%',
                 height: '38px',
@@ -118,8 +110,13 @@ export const WelcomeStep: React.FC<WelcomeStepProps> = ({ onStart }) => {
                 borderRadius: '10px',
                 padding: '0 12px',
                 fontFamily: 'var(--f-mono)',
-                fontSize: '0.9rem',
-                color: 'var(--ink)'
+                fontSize: '0.92rem',
+                fontWeight: 600,
+                letterSpacing: '0.04em',
+                color: 'var(--ink)',
+                cursor: 'default',
+                userSelect: 'all',
+                outline: 'none'
               }}
             />
           </div>

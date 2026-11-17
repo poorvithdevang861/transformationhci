@@ -37,6 +37,7 @@ export const PuzzleTrial: React.FC<PuzzleTrialProps> = ({
 
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [hintsUsed, setHintsUsed] = useState(0);
+  const [showBoundaries, setShowBoundaries] = useState(false);
   const [showCalibModal, setShowCalibModal] = useState(false);
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
 
@@ -85,6 +86,23 @@ export const PuzzleTrial: React.FC<PuzzleTrialProps> = ({
         <div className="r" style={{ gap: '8px' }}>
           <button
             type="button"
+            className={`ibtn tb ${showBoundaries ? 'active' : ''}`}
+            style={{
+              height: '28px',
+              fontSize: '0.78rem',
+              padding: '0 10px',
+              borderRadius: '7px',
+              background: showBoundaries ? 'var(--raised)' : undefined,
+              borderColor: showBoundaries ? 'var(--ink)' : undefined
+            }}
+            onClick={() => setShowBoundaries((prev) => !prev)}
+            title="Toggle defined Area of Interest (AOI) boundaries"
+          >
+            <Icon name="i-layers" size="sm" />
+            <span>Boundaries</span>
+          </button>
+          <button
+            type="button"
             className="ibtn tb"
             style={{ height: '28px', fontSize: '0.78rem', padding: '0 10px', borderRadius: '7px' }}
             onClick={() => setShowInstructionsModal(true)}
@@ -106,14 +124,14 @@ export const PuzzleTrial: React.FC<PuzzleTrialProps> = ({
         </div>
       </div>
 
-      {/* Main Study Grid - strictly clean without boundary highlights */}
+      {/* Main Study Grid with calibrated AOI boundaries */}
       <div
-        className="qgrid"
+        className={`qgrid ${showBoundaries ? 'show-mapped-boundaries' : ''}`}
         style={{
           display: 'grid',
           gridTemplateColumns: 'minmax(0, 1.25fr) minmax(0, 0.95fr)',
           gap: '16px',
-          alignItems: 'start'
+          alignItems: 'stretch'
         }}
       >
         <section className="panel qpanel" style={{ minWidth: 0 }}>
@@ -162,7 +180,7 @@ export const PuzzleTrial: React.FC<PuzzleTrialProps> = ({
           </div>
         </section>
 
-        <section style={{ minWidth: 0 }}>
+        <section style={{ minWidth: 0, height: '100%', display: 'flex', flexDirection: 'column' }}>
           <HintPlayer
             spec={spec}
             condition={condition}

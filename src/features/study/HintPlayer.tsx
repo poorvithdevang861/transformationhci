@@ -100,7 +100,7 @@ export const HintPlayer: React.FC<HintPlayerProps> = ({
       <div
         className="panel hpanel"
         data-aoi="hint-panel"
-        style={{ height: '100%', minHeight: '360px', display: 'flex', flexDirection: 'column' }}
+        style={{ height: '100%', minHeight: '360px', flex: 1, display: 'flex', flexDirection: 'column' }}
       >
         <div className="hint-head" style={{ marginBottom: '12px' }}>
           <div>
@@ -146,7 +146,7 @@ export const HintPlayer: React.FC<HintPlayerProps> = ({
     <div
       className={`panel hpanel ${condition}`}
       data-aoi="hint-panel"
-      style={{ height: '100%', minHeight: '360px', display: 'flex', flexDirection: 'column' }}
+      style={{ height: '100%', minHeight: '360px', flex: 1, display: 'flex', flexDirection: 'column' }}
     >
       <div className="hint-head" style={{ marginBottom: '10px' }}>
         <div>
