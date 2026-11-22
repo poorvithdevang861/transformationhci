@@ -200,8 +200,22 @@ export const HintPlayer: React.FC<HintPlayerProps> = ({
         elapsed={elapsed}
         getWindowMs={getWindowMs}
         onSelectHint={(k) => {
+          if (k > front) {
+            setFront(k);
+            setElapsed((prev) => {
+              const nextE = [...prev];
+              for (let i = 0; i < k; i++) {
+                nextE[i] = getWindowMs(i);
+              }
+              return nextE;
+            });
+            onHintsChanged?.(k + 1);
+            onHintAction?.('reveal', k);
+          } else {
+            onHintAction?.('select', k);
+          }
           setView(k);
-          onHintAction?.('select', k);
+          setProgress(0);
         }}
       />
 
@@ -214,6 +228,7 @@ export const HintPlayer: React.FC<HintPlayerProps> = ({
         onPrev={() => {
           const nextV = Math.max(0, view - 1);
           setView(nextV);
+          setProgress(0);
           onHintAction?.('prev', nextV);
         }}
         onTogglePause={() => {
@@ -229,9 +244,26 @@ export const HintPlayer: React.FC<HintPlayerProps> = ({
           onHintAction?.('replay', view);
         }}
         onNext={() => {
-          const nextV = Math.min(front, view + 1);
-          setView(nextV);
-          onHintAction?.('next', nextV);
+          if (view < n - 1) {
+            const nextV = view + 1;
+            // Advance to next hint immediately even if previous hint has time left
+            if (nextV > front) {
+              setFront(nextV);
+              setElapsed((prev) => {
+                const nextE = [...prev];
+                for (let i = 0; i < nextV; i++) {
+                  nextE[i] = getWindowMs(i);
+                }
+                return nextE;
+              });
+              onHintsChanged?.(nextV + 1);
+              onHintAction?.('reveal', nextV);
+            } else {
+              onHintAction?.('next', nextV);
+            }
+            setView(nextV);
+            setProgress(0);
+          }
         }}
         onSpeedChange={setSpeed}
       />

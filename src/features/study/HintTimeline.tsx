@@ -23,17 +23,18 @@ export const HintTimeline: React.FC<HintTimelineProps> = ({
         const winMs = getWindowMs(k);
         const elMs = elapsed[k] || 0;
         const pct = Math.min(100, Math.round((elMs / winMs) * 100));
-        const isUnlocked = k <= front;
+        const isUnlocked = k <= front + 1;
         const isActive = k === view;
 
         return (
           <button
             key={k}
             type="button"
-            className={`seg-t ${isActive ? 'on' : ''}`}
+            className={`seg-t ${isActive ? 'on' : ''} ${!isUnlocked ? 'locked' : ''}`}
             disabled={!isUnlocked}
             onClick={() => isUnlocked && onSelectHint(k)}
             aria-label={`Hint ${k + 1}`}
+            title={k <= front ? `Hint ${k + 1} (Unlocked)` : k === front + 1 ? `Unlock Hint ${k + 1}` : `Hint ${k + 1} (Locked)`}
           >
             <span className="bar">
               <i style={{ width: `${pct}%` }} />
