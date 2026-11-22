@@ -1,6 +1,7 @@
 import { GazePoint, GazeSessionResult } from './types';
 import { detectFixations } from './fixation-detector';
 import { computeAoiMetrics, getElementAoiKey, extractDomBoundaries } from './aoi-engine';
+import { journeyTracker } from './journey-tracker';
 
 const WEBGAZER_CDN = 'https://cdn.jsdelivr.net/npm/webgazer@3.5.3/dist/webgazer.min.js';
 
@@ -102,6 +103,7 @@ class WebGazerService {
         y: Math.round(y),
         target
       });
+      journeyTracker.processGazePoint(x, y, target);
     }
   }
 

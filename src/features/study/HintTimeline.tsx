@@ -18,7 +18,7 @@ export const HintTimeline: React.FC<HintTimelineProps> = ({
   onSelectHint
 }) => {
   return (
-    <div className="tl" role="group" aria-label="Hint timeline" style={{ margin: '14px 0 8px' }}>
+    <div className="tl" data-aoi="hint-timeline" role="group" aria-label="Hint timeline" style={{ margin: '14px 0 8px' }}>
       {Array.from({ length: hintsCount }).map((_, k) => {
         const winMs = getWindowMs(k);
         const elMs = elapsed[k] || 0;

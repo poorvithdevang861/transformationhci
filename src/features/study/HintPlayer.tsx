@@ -12,6 +12,7 @@ interface HintPlayerProps {
   windows?: number[];
   animSeconds?: number;
   onHintsChanged?: (count: number) => void;
+  onHintAction?: (action: 'reveal' | 'select' | 'prev' | 'next' | 'replay' | 'pause', hintIdx: number) => void;
 }
 
 export const HintPlayer: React.FC<HintPlayerProps> = ({
@@ -19,7 +20,8 @@ export const HintPlayer: React.FC<HintPlayerProps> = ({
   condition,
   windows = [20, 20, 20, 20],
   animSeconds = 1.6,
-  onHintsChanged
+  onHintsChanged,
+  onHintAction
 }) => {
   const hints = hintsFor(spec);
   const n = hints.length;
@@ -58,6 +60,7 @@ export const HintPlayer: React.FC<HintPlayerProps> = ({
                 const nextF = f + 1;
                 setView(nextF);
                 onHintsChanged?.(nextF + 1);
+                onHintAction?.('reveal', nextF);
                 return nextF;
               });
             }
@@ -125,6 +128,7 @@ export const HintPlayer: React.FC<HintPlayerProps> = ({
               setFront(0);
               setView(0);
               onHintsChanged?.(1);
+              onHintAction?.('reveal', 0);
             }}
             style={{ height: '36px', padding: '0 16px', borderRadius: '8px' }}
           >
@@ -195,7 +199,10 @@ export const HintPlayer: React.FC<HintPlayerProps> = ({
         view={view}
         elapsed={elapsed}
         getWindowMs={getWindowMs}
-        onSelectHint={(k) => setView(k)}
+        onSelectHint={(k) => {
+          setView(k);
+          onHintAction?.('select', k);
+        }}
       />
 
       <HintControls
@@ -204,13 +211,28 @@ export const HintPlayer: React.FC<HintPlayerProps> = ({
         paused={paused}
         isAnimated={isAnimated}
         speed={speed}
-        onPrev={() => setView((v) => Math.max(0, v - 1))}
-        onTogglePause={() => setPaused((p) => !p)}
+        onPrev={() => {
+          const nextV = Math.max(0, view - 1);
+          setView(nextV);
+          onHintAction?.('prev', nextV);
+        }}
+        onTogglePause={() => {
+          setPaused((p) => {
+            const nextP = !p;
+            onHintAction?.('pause', view);
+            return nextP;
+          });
+        }}
         onReplay={() => {
           setProgress(0);
           setPaused(false);
+          onHintAction?.('replay', view);
         }}
-        onNext={() => setView((v) => Math.min(front, v + 1))}
+        onNext={() => {
+          const nextV = Math.min(front, view + 1);
+          setView(nextV);
+          onHintAction?.('next', nextV);
+        }}
         onSpeedChange={setSpeed}
       />
     </div>

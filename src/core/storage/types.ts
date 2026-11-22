@@ -1,4 +1,5 @@
 import { AoiMetric, GazePoint, Fixation, BoundaryRect } from '../gaze/types';
+import { GazeJourneyEvent, HintJourneySummary } from '../gaze/journey-types';
 
 export interface TrialData {
   idx: number;
@@ -13,6 +14,8 @@ export interface TrialData {
   samples?: GazePoint[];
   fixations?: Fixation[];
   boundaries?: Record<string, BoundaryRect>;
+  journeyEvents?: GazeJourneyEvent[];
+  hintJourneys?: HintJourneySummary[];
 }
 
 export interface SurveyRatings {

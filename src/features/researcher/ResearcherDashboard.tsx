@@ -86,6 +86,18 @@ export const ResearcherDashboard: React.FC<ResearcherDashboardProps> = ({ onNavi
           </div>
         </div>
         <div className="r" style={{ gap: '8px' }}>
+          {onNavigate && (
+            <button
+              type="button"
+              className="ibtn tb primary"
+              onClick={() => onNavigate('analytics')}
+              style={{ height: '34px', borderRadius: '8px', padding: '0 12px' }}
+              title="Open Eye-Gaze Journey & Hint Analytics Dashboard"
+            >
+              <Icon name="i-eye" size="sm" />
+              <span>Journey Analytics</span>
+            </button>
+          )}
           <button type="button" className="ibtn tb" onClick={() => downloadBlob(exportGazeCsv(sessions), 'gaze_metrics.csv', 'text/csv')}>
             <Icon name="i-eye" size="sm" />
             <span>Gaze CSV</span>
@@ -111,6 +123,43 @@ export const ResearcherDashboard: React.FC<ResearcherDashboardProps> = ({ onNavi
       </div>
 
       <KpiCards sessions={sessions} />
+
+      {onNavigate && (
+        <div
+          style={{
+            background: 'linear-gradient(90deg, rgba(168, 85, 247, 0.12), rgba(34, 197, 94, 0.12))',
+            border: '1px solid rgba(168, 85, 247, 0.3)',
+            borderRadius: '12px',
+            padding: '14px 20px',
+            marginTop: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '16px'
+          }}
+        >
+          <div>
+            <div style={{ fontWeight: 700, fontSize: '0.98rem', color: 'var(--fg)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>Eye-Gaze Journey Tracking & Hint Interaction Analytics</span>
+              <span className="pill" style={{ background: 'rgba(34, 197, 94, 0.2)', color: '#22c55e', fontSize: '0.72rem' }}>
+                New Module
+              </span>
+            </div>
+            <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: 'var(--muted)' }}>
+              Explore chronological visual journeys after hint clicks, interactive Sankey transition flows, boundary heatmaps, and playback.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="ibtn primary"
+            onClick={() => onNavigate('analytics')}
+            style={{ height: '34px', padding: '0 16px', borderRadius: '8px', whiteSpace: 'nowrap' }}
+          >
+            <span>Launch Journey Analytics</span>
+            <Icon name="i-arrow" size="sm" />
+          </button>
+        </div>
+      )}
 
       <div className="panel" style={{ marginTop: '16px' }}>
         <div className="eyebrow">Analysis</div>

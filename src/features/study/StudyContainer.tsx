@@ -3,6 +3,7 @@ import { ExperimentSession, TrialData } from '../../core/storage/types';
 import { LocalStore } from '../../core/storage/local-store';
 import { saveResultsToServer } from '../../core/storage/api-client';
 import { gazeTracker } from '../../core/gaze/webgazer-service';
+import { journeyTracker } from '../../core/gaze/journey-tracker';
 import { SETS } from '../../core/geometry/problems';
 import { WelcomeStep } from './WelcomeStep';
 import { IntroStep } from './IntroStep';
@@ -55,6 +56,9 @@ export const StudyContainer: React.FC<StudyContainerProps> = ({ onNavigate, onSt
     setTrialIndex(0);
     setTrialStartTime(performance.now());
     gazeTracker.startRecording();
+    if (session) {
+      journeyTracker.startTrial(session.id, session.id, mainQuestions[0] + 1);
+    }
     setStep('trial');
   };
 
@@ -71,7 +75,9 @@ export const StudyContainer: React.FC<StudyContainerProps> = ({ onNavigate, onSt
     const gazeRes = gazeTracker.stopRecording(qGrid);
     const problemIdx = mainQuestions[trialIndex];
     const correctAns = SETS[config.mainSet].answers[problemIdx];
+    const isCorrect = choice === correctAns;
     const elapsed = Math.round(performance.now() - trialStartTime);
+    const journeyRes = journeyTracker.completeTrial(choice, isCorrect);
 
     const trial: TrialData = {
       idx: trialIndex + 1,
@@ -79,13 +85,15 @@ export const StudyContainer: React.FC<StudyContainerProps> = ({ onNavigate, onSt
       condition: session.mode === 'randomise' ? (trialIndex % 2 === 0 ? 'animated' : 'static') : session.mode === 'animation' ? 'animated' : 'static',
       choice,
       answer: correctAns,
-      correct: choice === correctAns,
+      correct: isCorrect,
       timeMs: elapsed,
       hintsUsed,
       aoi: gazeRes.aoiMetrics,
       samples: gazeRes.samples,
       fixations: gazeRes.fixations,
-      boundaries: gazeRes.boundaries
+      boundaries: gazeRes.boundaries,
+      journeyEvents: journeyRes.events,
+      hintJourneys: journeyRes.hintJourneys
     };
 
     const updatedTrials = [...session.trials, trial];
@@ -95,9 +103,11 @@ export const StudyContainer: React.FC<StudyContainerProps> = ({ onNavigate, onSt
     saveResultsToServer(updatedSession);
 
     if (trialIndex + 1 < mainQuestions.length) {
-      setTrialIndex((idx) => idx + 1);
+      const nextIdx = trialIndex + 1;
+      setTrialIndex(nextIdx);
       setTrialStartTime(performance.now());
       gazeTracker.startRecording();
+      journeyTracker.startTrial(session.id, session.id, mainQuestions[nextIdx] + 1);
     } else {
       setStep('effort');
     }

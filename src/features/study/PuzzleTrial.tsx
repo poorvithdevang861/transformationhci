@@ -7,6 +7,7 @@ import { HintPlayer } from './HintPlayer';
 import { Icon } from '../../components/common/Icon';
 import { CalibrationModal } from './CalibrationModal';
 import { Modal } from '../../components/common/Modal';
+import { journeyTracker } from '../../core/gaze/journey-tracker';
 
 interface PuzzleTrialProps {
   setIdx: number;
@@ -157,7 +158,10 @@ export const PuzzleTrial: React.FC<PuzzleTrialProps> = ({
             set={currentSet}
             problemIdx={problemIdx}
             selectedOption={selectedOption}
-            onSelectOption={setSelectedOption}
+            onSelectOption={(num) => {
+              setSelectedOption(num);
+              journeyTracker.recordAnswerSelected(num);
+            }}
           />
 
           <div className="edge" style={{ marginTop: '16px', borderTop: '1px solid var(--line)', paddingTop: '12px' }}>
@@ -187,6 +191,15 @@ export const PuzzleTrial: React.FC<PuzzleTrialProps> = ({
             windows={hintWindows}
             animSeconds={animSeconds}
             onHintsChanged={setHintsUsed}
+            onHintAction={(action, hintIdx) => {
+              const hintNum = hintIdx + 1;
+              const hintName = `Clue ${hintNum}`;
+              if (action === 'reveal' || action === 'select' || action === 'next') {
+                journeyTracker.recordHintClick(hintNum, hintName, action);
+              } else {
+                journeyTracker.recordHintChange(hintNum, hintName);
+              }
+            }}
           />
         </section>
       </div>

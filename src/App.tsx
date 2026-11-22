@@ -3,6 +3,7 @@ import { Header, AppView } from './components/common/Header';
 import { LandingBackground } from './components/common/LandingBackground';
 import { StudyContainer } from './features/study/StudyContainer';
 import { ResearcherDashboard } from './features/researcher/ResearcherDashboard';
+import { JourneyDashboard } from './features/analytics/JourneyDashboard';
 
 type Theme = 'dark' | 'light';
 
@@ -20,6 +21,7 @@ const getInitialTheme = (): Theme => {
 const getInitialView = (): AppView => {
   if (typeof window !== 'undefined') {
     const p = window.location.pathname.toLowerCase();
+    if (p.includes('analytics') || p.includes('journey')) return 'analytics';
     if (p.includes('researcher')) return 'researcher';
   }
   return 'study';
@@ -63,6 +65,7 @@ export const App: React.FC = () => {
             />
           )}
           {currentView === 'researcher' && <ResearcherDashboard onNavigate={setCurrentView} />}
+          {currentView === 'analytics' && <JourneyDashboard onNavigate={setCurrentView} />}
         </main>
       </div>
 

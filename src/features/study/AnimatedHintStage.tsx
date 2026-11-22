@@ -94,6 +94,7 @@ export const AnimatedHintStage: React.FC<AnimatedHintStageProps> = ({
   return (
     <div
       className="hint-stage"
+      data-aoi="hint-stage"
       style={{
         display: 'grid',
         gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)',

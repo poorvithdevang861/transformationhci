@@ -70,7 +70,7 @@ class ExperimentServer(http.server.SimpleHTTPRequestHandler):
         else:
             # Fallback to SPA index.html for client-side routing or legacy HTML routes
             req_path = os.path.join(self.directory, parsed.path.lstrip("/"))
-            if parsed.path in ["/", "/index.html", "/explore.html", "/eyetracker.html", "/researcher.html"] or not os.path.exists(req_path):
+            if parsed.path in ["/", "/index.html", "/explore.html", "/eyetracker.html", "/researcher.html", "/analytics"] or not os.path.exists(req_path):
                 self.path = "/index.html"
             super().do_GET()
 

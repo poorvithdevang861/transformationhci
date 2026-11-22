@@ -1,3 +1,18 @@
 @import './base.css';
 @import './study.css';
 @import './researcher.css';
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.6);
+    opacity: 0.15;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+}

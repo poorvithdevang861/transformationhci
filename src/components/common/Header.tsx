@@ -2,7 +2,7 @@ import React from 'react';
 import { Icon } from './Icon';
 import { HeroPuzzleIllustration } from './HeroPuzzleIllustration';
 
-export type AppView = 'study' | 'researcher';
+export type AppView = 'study' | 'researcher' | 'analytics';
 
 interface HeaderProps {
   currentView: AppView;
@@ -89,6 +89,16 @@ export const Header: React.FC<HeaderProps> = ({
         >
           <Icon name="i-chart" size="sm" />
           <span>Researcher</span>
+        </button>
+        <button
+          type="button"
+          className={`ibtn tb ${currentView === 'analytics' ? 'primary' : ''}`}
+          onClick={() => onNavigate('analytics')}
+          style={{ height: '34px', borderRadius: '8px', padding: '0 14px', fontSize: '0.84rem' }}
+          title="Eye-Gaze Journey & Hint Interaction Analytics"
+        >
+          <Icon name="i-eye" size="sm" />
+          <span>Journey Analytics</span>
         </button>
         <button
           type="button"

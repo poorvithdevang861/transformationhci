@@ -27,7 +27,7 @@ export const HintControls: React.FC<HintControlsProps> = ({
   onSpeedChange
 }) => {
   return (
-    <div className="hint-ctrl" style={{ marginTop: 'auto', paddingTop: '12px' }}>
+    <div className="hint-ctrl" data-aoi="hint-controls" style={{ marginTop: 'auto', paddingTop: '12px' }}>
       <div className="seg-btns" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
         <button
           type="button"
