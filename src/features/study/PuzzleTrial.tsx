@@ -186,6 +186,7 @@ export const PuzzleTrial: React.FC<PuzzleTrialProps> = ({
 
         <section style={{ minWidth: 0, height: '100%', display: 'flex', flexDirection: 'column' }}>
           <HintPlayer
+            key={`hint-player-${setIdx}-${problemIdx}`}
             spec={spec}
             condition={condition}
             windows={hintWindows}

@@ -71,6 +71,33 @@ export const InteractiveSessionPlayer: React.FC<InteractiveSessionPlayerProps> =
     return b;
   }, [currentTrial]);
 
+  // Compute adaptive stage dimensions so visualizer scales cleanly without getting cropped
+  const stageBounds = useMemo(() => {
+    const bList = Object.values(boundaries);
+    let maxX = 860;
+    let maxY = 440;
+
+    if (bList.length > 0) {
+      maxX = Math.max(...bList.map((b) => b.x + b.w));
+      maxY = Math.max(...bList.map((b) => b.y + b.h));
+    }
+
+    if (samples.length > 0) {
+      const validSamples = samples.filter((s) => s.x > 0 && s.y > 0 && s.x < 3000 && s.y < 2000);
+      if (validSamples.length > 0) {
+        const sMaxX = Math.max(...validSamples.map((s) => s.x));
+        const sMaxY = Math.max(...validSamples.map((s) => s.y));
+        if (sMaxX <= maxX * 1.25) maxX = Math.max(maxX, sMaxX);
+        if (sMaxY <= maxY * 1.25) maxY = Math.max(maxY, sMaxY);
+      }
+    }
+
+    const width = Math.max(860, Math.round(maxX + 32));
+    const height = Math.max(460, Math.round(maxY + 40));
+
+    return { width, height };
+  }, [boundaries, samples]);
+
   // Current gaze sample and active region at currentTimeMs
   const activeState = useMemo(() => {
     // Find closest gaze point
@@ -333,89 +360,128 @@ export const InteractiveSessionPlayer: React.FC<InteractiveSessionPlayerProps> =
           </div>
         </div>
 
-        {/* Interface Visualizer with Synchronized Boundary Highlighting */}
+        {/* Interface Visualizer with Synchronized Boundary Highlighting (Responsive SVG prevents cropping) */}
         <div
           style={{
             position: 'relative',
             width: '100%',
-            height: '460px',
             background: 'radial-gradient(ellipse at 50% 50%, #151824 0%, #0a0b10 100%)',
             border: '1px solid var(--line)',
             borderRadius: '12px',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: '8px'
           }}
         >
-          {/* Render All Registered Boundaries on Interface Canvas */}
-          {Object.values(boundaries).map((b) => {
-            const normKey = b.key.replace(/-([a-zA-Z0-9])/g, (_, ch) => ch.toUpperCase());
-            const isActive = activeState.regionId === normKey || activeState.regionId === b.key || (activeState.regionId === 'hints' && b.key.includes('hint'));
+          <svg
+            viewBox={`0 0 ${stageBounds.width} ${stageBounds.height}`}
+            preserveAspectRatio="xMidYMid meet"
+            style={{
+              width: '100%',
+              height: 'auto',
+              maxHeight: '560px',
+              display: 'block'
+            }}
+          >
+            {/* Subtle background UI wireframe guide */}
+            <rect
+              x={18}
+              y={18}
+              width={stageBounds.width * 0.54}
+              height={stageBounds.height - 36}
+              rx={10}
+              fill="rgba(255, 255, 255, 0.015)"
+              stroke="rgba(255, 255, 255, 0.06)"
+              strokeWidth={1}
+              strokeDasharray="4 4"
+            />
+            <rect
+              x={stageBounds.width * 0.57}
+              y={18}
+              width={stageBounds.width * 0.40}
+              height={stageBounds.height - 36}
+              rx={10}
+              fill="rgba(34, 197, 94, 0.015)"
+              stroke="rgba(34, 197, 94, 0.08)"
+              strokeWidth={1}
+              strokeDasharray="4 4"
+            />
 
-            return (
-              <div
-                key={b.key}
-                style={{
-                  position: 'absolute',
-                  left: `${b.x}px`,
-                  top: `${b.y}px`,
-                  width: `${b.w}px`,
-                  height: `${b.h}px`,
-                  borderRadius: '8px',
-                  border: isActive ? `2px solid ${b.color}` : '1px dashed rgba(255, 255, 255, 0.12)',
-                  background: isActive ? `${b.color}24` : 'rgba(255, 255, 255, 0.02)',
-                  boxShadow: isActive ? `0 0 20px ${b.color}40, inset 0 0 12px ${b.color}20` : 'none',
-                  transition: 'all 0.15s ease',
-                  pointerEvents: 'none',
-                  zIndex: isActive ? 5 : 2
-                }}
-              >
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: '-18px',
-                    left: '4px',
-                    fontSize: '0.7rem',
-                    fontWeight: 700,
-                    color: isActive ? b.color : 'rgba(255, 255, 255, 0.35)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.04em'
-                  }}
-                >
-                  {b.name}
-                </div>
-              </div>
-            );
-          })}
+            {/* Render All Registered Boundaries on Interface Canvas */}
+            {Object.values(boundaries).map((b) => {
+              const normKey = b.key.replace(/-([a-zA-Z0-9])/g, (_, ch) => ch.toUpperCase());
+              const isActive = activeState.regionId === normKey || activeState.regionId === b.key || (activeState.regionId === 'hints' && b.key.includes('hint'));
 
-          {/* Animated Eye-Gaze Cursor Dot */}
-          {activeState.sample && (
-            <div
-              style={{
-                position: 'absolute',
-                left: `${activeState.sample.x}px`,
-                top: `${activeState.sample.y}px`,
-                width: '20px',
-                height: '20px',
-                borderRadius: '50%',
-                background: 'rgba(239, 68, 68, 0.85)',
-                border: '2px solid #fff',
-                boxShadow: '0 0 16px rgba(239, 68, 68, 0.9)',
-                transform: 'translate(-50%, -50%)',
-                pointerEvents: 'none',
-                zIndex: 20,
-                transition: 'left 0.05s ease-out, top 0.05s ease-out'
-              }}
-            >
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: '-6px',
-                  borderRadius: '50%',
-                  border: '1px solid rgba(239, 68, 68, 0.5)',
-                  animation: 'pulse 1.5s infinite'
-                }}
-              />
-            </div>
-          )}
+              return (
+                <g key={b.key} style={{ transition: 'all 0.15s ease' }}>
+                  {/* Boundary Box */}
+                  <rect
+                    x={b.x}
+                    y={b.y}
+                    width={b.w}
+                    height={b.h}
+                    rx={8}
+                    fill={isActive ? `${b.color}28` : 'rgba(255, 255, 255, 0.02)'}
+                    stroke={isActive ? b.color : 'rgba(255, 255, 255, 0.14)'}
+                    strokeWidth={isActive ? 2.5 : 1}
+                    strokeDasharray={isActive ? 'none' : '4 3'}
+                  />
+
+                  {/* Active Boundary Pulse Glow */}
+                  {isActive && (
+                    <rect
+                      x={b.x - 3}
+                      y={b.y - 3}
+                      width={b.w + 6}
+                      height={b.h + 6}
+                      rx={10}
+                      fill="none"
+                      stroke={b.color}
+                      strokeWidth={1.5}
+                      opacity={0.4}
+                    >
+                      <animate attributeName="opacity" values="0.6;0.1;0.6" dur="1.2s" repeatCount="indefinite" />
+                    </rect>
+                  )}
+
+                  {/* Boundary Label Badge */}
+                  <rect
+                    x={b.x + 4}
+                    y={Math.max(4, b.y - 18)}
+                    width={Math.min(b.w - 8, Math.max(70, b.name.length * 6.8 + 14))}
+                    height={16}
+                    rx={4}
+                    fill="rgba(15, 17, 24, 0.9)"
+                    stroke={isActive ? b.color : 'rgba(255, 255, 255, 0.12)'}
+                    strokeWidth={1}
+                  />
+                  <text
+                    x={b.x + 9}
+                    y={Math.max(4, b.y - 18) + 11}
+                    fill={isActive ? b.color : 'rgba(255, 255, 255, 0.5)'}
+                    fontSize="9.5"
+                    fontWeight="700"
+                    letterSpacing="0.03em"
+                  >
+                    {b.name}
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* Animated Eye-Gaze Cursor Dot */}
+            {activeState.sample && (
+              <g transform={`translate(${activeState.sample.x}, ${activeState.sample.y})`}>
+                <circle r={18} fill="none" stroke="rgba(239, 68, 68, 0.45)" strokeWidth={2}>
+                  <animate attributeName="r" values="8;20;8" dur="1.3s" repeatCount="indefinite" />
+                  <animate attributeName="opacity" values="0.8;0.15;0.8" dur="1.3s" repeatCount="indefinite" />
+                </circle>
+                <circle r={7} fill="rgba(239, 68, 68, 0.95)" stroke="#fff" strokeWidth={2} />
+              </g>
+            )}
+          </svg>
         </div>
       </div>
     </div>

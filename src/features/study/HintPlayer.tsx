@@ -27,7 +27,8 @@ export const HintPlayer: React.FC<HintPlayerProps> = ({
   const n = hints.length;
   const isAnimated = condition === 'animated';
 
-  const [front, setFront] = useState(-1);
+  // Hints start from the first clue on every question
+  const [front, setFront] = useState(0);
   const [view, setView] = useState(0);
   const [paused, setPaused] = useState(false);
   const [speed, setSpeed] = useState(1);
@@ -40,7 +41,12 @@ export const HintPlayer: React.FC<HintPlayerProps> = ({
 
   const getWindowMs = (k: number) => (windows[Math.min(k, windows.length - 1)] || 20) * 1000;
 
-  // Main timing & animation tick
+  // Initialize with Hint 1 active
+  useEffect(() => {
+    onHintsChanged?.(1);
+  }, []);
+
+  // Main timing & animation tick (NO automatic clue switching; next clue shown ONLY on manual click)
   useEffect(() => {
     if (front < 0) return;
     lastTimeRef.current = performance.now();
@@ -55,15 +61,6 @@ export const HintPlayer: React.FC<HintPlayerProps> = ({
           const targetWin = getWindowMs(front);
           if (next[front] < targetWin) {
             next[front] = Math.min(targetWin, next[front] + dt);
-            if (next[front] >= targetWin && front < n - 1) {
-              setFront((f) => {
-                const nextF = f + 1;
-                setView(nextF);
-                onHintsChanged?.(nextF + 1);
-                onHintAction?.('reveal', nextF);
-                return nextF;
-              });
-            }
           }
           return next;
         });
