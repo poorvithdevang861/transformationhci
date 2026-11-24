@@ -15,15 +15,15 @@ interface CalibPoint {
 }
 
 const CALIB_POINTS: CalibPoint[] = [
-  { id: 0, x: 12, y: 14 },
-  { id: 1, x: 50, y: 14 },
-  { id: 2, x: 88, y: 14 },
+  { id: 0, x: 12, y: 15 },
+  { id: 1, x: 50, y: 15 },
+  { id: 2, x: 88, y: 15 },
   { id: 3, x: 12, y: 50 },
   { id: 4, x: 50, y: 50 },
   { id: 5, x: 88, y: 50 },
-  { id: 6, x: 12, y: 86 },
-  { id: 7, x: 50, y: 86 },
-  { id: 8, x: 88, y: 86 }
+  { id: 6, x: 12, y: 85 },
+  { id: 7, x: 50, y: 85 },
+  { id: 8, x: 88, y: 85 }
 ];
 
 const VALIDATION_POINTS: CalibPoint[] = [
@@ -63,6 +63,19 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
   const containerRef = useRef<HTMLDivElement>(null);
   const isWebcam = gazeTracker.isActive;
   const isFallback = gazeTracker.isFallback;
+
+  // Prevent any document scrolling while in calibration
+  useEffect(() => {
+    const origHtmlOverflow = document.documentElement.style.overflow;
+    const origBodyOverflow = document.body.style.overflow;
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.documentElement.style.overflow = origHtmlOverflow;
+      document.body.style.overflow = origBodyOverflow;
+    };
+  }, []);
 
   useEffect(() => {
     const unsub = gazeTracker.subscribe((pt) => {
@@ -198,33 +211,44 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
   const progressPct = Math.round((totalClicksDone / totalTargetClicks) * 100);
 
   return (
-    <div style={{ maxWidth: '920px', margin: '24px auto', width: '100%' }}>
+    <div
+      style={{
+        height: '100%',
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        padding: '8px 12px',
+        boxSizing: 'border-box',
+        overflow: 'hidden'
+      }}
+    >
       <div
         className="panel"
         style={{
-          borderRadius: '16px',
-          padding: '28px',
+          flex: 1,
+          minHeight: 0,
+          borderRadius: '12px',
+          padding: '14px 18px',
           border: '1px solid var(--line)',
           background: 'var(--panel)',
           display: 'flex',
           flexDirection: 'column',
-          gap: '20px',
-          boxShadow: 'none'
+          gap: '10px',
+          boxShadow: 'none',
+          boxSizing: 'border-box',
+          overflow: 'hidden'
         }}
       >
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+        {/* Header Row */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
           <div>
-            <div className="eyebrow" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <div className="eyebrow" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.74rem' }}>
               <Icon name="i-crosshair" size="sm" />
-              <span>Phase 2 · Tracking Calibration</span>
+              <span>Eye-Tracker Calibration & Accuracy Verification</span>
             </div>
-            <h2 className="ptitle" style={{ fontSize: '1.25rem', margin: '4px 0 6px', fontWeight: 600 }}>
-              Eye-Gaze Calibration & Accuracy Verification
+            <h2 className="ptitle" style={{ fontSize: '1.15rem', margin: '2px 0 0', fontWeight: 600 }}>
+              Calibrate and verify tracking precision before Question 1
             </h2>
-            <p style={{ margin: 0, color: 'var(--muted)', fontSize: '0.88rem', lineHeight: 1.5 }}>
-              Calibrate your gaze model and confirm spatial tracking accuracy before proceeding to Question 1.
-            </p>
           </div>
 
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -232,13 +256,13 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '6px',
-                padding: '4px 10px',
-                borderRadius: '6px',
+                gap: '5px',
+                padding: '3px 8px',
+                borderRadius: '5px',
                 background: 'var(--sunken)',
                 border: '1px solid var(--line)',
                 color: isWebcam ? 'var(--ok)' : 'var(--hint)',
-                fontSize: '0.78rem',
+                fontSize: '0.74rem',
                 fontFamily: 'var(--f-mono)'
               }}
             >
@@ -250,18 +274,18 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
                   background: isWebcam ? 'var(--ok)' : 'var(--hint)'
                 }}
               />
-              {isWebcam ? 'Camera Active' : isFallback ? 'Mouse Fallback' : 'Tracker Ready'}
+              {isWebcam ? 'Camera Active' : isFallback ? 'Mouse Simulation' : 'Ready'}
             </span>
 
             {participantId && (
               <span
                 style={{
-                  padding: '4px 10px',
-                  borderRadius: '6px',
+                  padding: '3px 8px',
+                  borderRadius: '5px',
                   background: 'var(--sunken)',
                   border: '1px solid var(--line)',
                   fontFamily: 'var(--f-mono)',
-                  fontSize: '0.78rem',
+                  fontSize: '0.74rem',
                   color: 'var(--muted)'
                 }}
               >
@@ -271,147 +295,91 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
           </div>
         </div>
 
-        {/* Setup Guidelines (Using clean line icons, zero emojis) */}
+        {/* Combined Utility Bar: Guidelines (Left) & Stepper (Right) */}
         <div
           style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: '12px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             background: 'var(--sunken)',
-            padding: '12px 16px',
-            borderRadius: '10px',
-            border: '1px solid var(--line)'
+            padding: '6px 12px',
+            borderRadius: '8px',
+            border: '1px solid var(--line)',
+            fontSize: '0.78rem',
+            flexShrink: 0,
+            gap: '12px'
           }}
         >
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', fontSize: '0.82rem' }}>
-            <Icon name="i-ruler" size="sm" style={{ color: 'var(--muted)', flexShrink: 0 }} />
-            <div>
-              <div style={{ color: 'var(--ink)', fontWeight: 500 }}>Distance</div>
-              <div style={{ color: 'var(--muted)', fontSize: '0.76rem' }}>50–60 cm from screen</div>
-            </div>
+          {/* Guidelines */}
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--muted)' }}>
+              <Icon name="i-ruler" size="sm" />
+              <span>50–60 cm distance</span>
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--muted)' }}>
+              <Icon name="i-sun" size="sm" />
+              <span>Even lighting</span>
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--muted)' }}>
+              <Icon name="i-user" size="sm" />
+              <span>Keep head steady</span>
+            </span>
           </div>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', fontSize: '0.82rem' }}>
-            <Icon name="i-sun" size="sm" style={{ color: 'var(--muted)', flexShrink: 0 }} />
-            <div>
-              <div style={{ color: 'var(--ink)', fontWeight: 500 }}>Illumination</div>
-              <div style={{ color: 'var(--muted)', fontSize: '0.76rem' }}>Evenly lit, no backlight</div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', fontSize: '0.82rem' }}>
-            <Icon name="i-user" size="sm" style={{ color: 'var(--muted)', flexShrink: 0 }} />
-            <div>
-              <div style={{ color: 'var(--ink)', fontWeight: 500 }}>Stability</div>
-              <div style={{ color: 'var(--muted)', fontSize: '0.76rem' }}>Keep head still during clicks</div>
-            </div>
+
+          {/* Stepper Pills */}
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+            <span
+              style={{
+                padding: '2px 8px',
+                borderRadius: '4px',
+                background: phase === 'calibrating' ? 'var(--raised)' : 'transparent',
+                border: `1px solid ${phase === 'calibrating' ? 'var(--line-strong)' : 'transparent'}`,
+                color: phase === 'calibrating' ? 'var(--ink)' : 'var(--muted)',
+                fontWeight: phase === 'calibrating' ? 600 : 400
+              }}
+            >
+              1. 9-Point Calibration ({progressPct}%)
+            </span>
+            <span style={{ color: 'var(--line-strong)' }}>›</span>
+            <span
+              style={{
+                padding: '2px 8px',
+                borderRadius: '4px',
+                background: phase === 'verifying' ? 'var(--raised)' : 'transparent',
+                border: `1px solid ${phase === 'verifying' ? 'var(--line-strong)' : 'transparent'}`,
+                color: phase === 'verifying' ? 'var(--ink)' : 'var(--muted)',
+                fontWeight: phase === 'verifying' ? 600 : 400
+              }}
+            >
+              2. Verification
+            </span>
+            <span style={{ color: 'var(--line-strong)' }}>›</span>
+            <span
+              style={{
+                padding: '2px 8px',
+                borderRadius: '4px',
+                background: phase === 'verified' ? 'var(--raised)' : 'transparent',
+                border: `1px solid ${phase === 'verified' ? 'var(--line-strong)' : 'transparent'}`,
+                color: phase === 'verified' ? 'var(--ink)' : 'var(--muted)',
+                fontWeight: phase === 'verified' ? 600 : 400
+              }}
+            >
+              3. Live AOI Test
+            </span>
           </div>
         </div>
 
-        {/* Phase Stepper */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', fontSize: '0.8rem' }}>
-          <div
-            style={{
-              padding: '8px 12px',
-              borderRadius: '8px',
-              background: phase === 'calibrating' ? 'var(--raised)' : 'var(--sunken)',
-              border: `1px solid ${phase === 'calibrating' ? 'var(--line-strong)' : 'var(--line)'}`,
-              color: phase === 'calibrating' ? 'var(--ink)' : 'var(--muted)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            <span
-              style={{
-                width: '18px',
-                height: '18px',
-                borderRadius: '50%',
-                background: phase !== 'calibrating' ? 'var(--ok)' : 'var(--chip)',
-                color: phase !== 'calibrating' ? '#111113' : 'var(--ink)',
-                fontSize: '11px',
-                display: 'grid',
-                placeItems: 'center',
-                fontFamily: 'var(--f-mono)',
-                fontWeight: 600
-              }}
-            >
-              {phase !== 'calibrating' ? '✓' : '1'}
-            </span>
-            <span>9-Point Calibration ({progressPct}%)</span>
-          </div>
-
-          <div
-            style={{
-              padding: '8px 12px',
-              borderRadius: '8px',
-              background: phase === 'verifying' ? 'var(--raised)' : 'var(--sunken)',
-              border: `1px solid ${phase === 'verifying' ? 'var(--line-strong)' : 'var(--line)'}`,
-              color: phase === 'verifying' ? 'var(--ink)' : 'var(--muted)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            <span
-              style={{
-                width: '18px',
-                height: '18px',
-                borderRadius: '50%',
-                background: phase === 'verified' ? 'var(--ok)' : 'var(--chip)',
-                color: phase === 'verified' ? '#111113' : 'var(--ink)',
-                fontSize: '11px',
-                display: 'grid',
-                placeItems: 'center',
-                fontFamily: 'var(--f-mono)',
-                fontWeight: 600
-              }}
-            >
-              {phase === 'verified' ? '✓' : '2'}
-            </span>
-            <span>Spatial Verification</span>
-          </div>
-
-          <div
-            style={{
-              padding: '8px 12px',
-              borderRadius: '8px',
-              background: phase === 'verified' ? 'var(--raised)' : 'var(--sunken)',
-              border: `1px solid ${phase === 'verified' ? 'var(--line-strong)' : 'var(--line)'}`,
-              color: phase === 'verified' ? 'var(--ink)' : 'var(--muted)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            <span
-              style={{
-                width: '18px',
-                height: '18px',
-                borderRadius: '50%',
-                background: 'var(--chip)',
-                color: 'var(--ink)',
-                fontSize: '11px',
-                display: 'grid',
-                placeItems: 'center',
-                fontFamily: 'var(--f-mono)',
-                fontWeight: 600
-              }}
-            >
-              3
-            </span>
-            <span>Live AOI Test & Start</span>
-          </div>
-        </div>
-
-        {/* Central Display Stage */}
+        {/* Central Display Stage (Fills 100% remaining vertical space cleanly, never scrolls) */}
         <div
           ref={containerRef}
           style={{
+            flex: 1,
+            minHeight: 0,
             position: 'relative',
             width: '100%',
-            height: '420px',
             background: 'var(--sunken)',
             border: '1px solid var(--line)',
-            borderRadius: '12px',
+            borderRadius: '10px',
             overflow: 'hidden'
           }}
         >
@@ -421,21 +389,21 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
               <div
                 style={{
                   position: 'absolute',
-                  top: '12px',
+                  top: '10px',
                   left: '50%',
                   transform: 'translateX(-50%)',
                   background: 'var(--panel)',
-                  padding: '6px 14px',
-                  borderRadius: '20px',
+                  padding: '4px 14px',
+                  borderRadius: '16px',
                   border: '1px solid var(--line)',
                   textAlign: 'center',
                   zIndex: 10
                 }}
               >
-                <span style={{ fontSize: '0.82rem', color: 'var(--ink)' }}>
+                <span style={{ fontSize: '0.8rem', color: 'var(--ink)' }}>
                   Fixate on each target and click it <b>5 times</b>.
                 </span>
-                <span style={{ marginLeft: '8px', fontFamily: 'var(--f-mono)', fontSize: '0.78rem', color: 'var(--muted)' }}>
+                <span style={{ marginLeft: '8px', fontFamily: 'var(--f-mono)', fontSize: '0.76rem', color: 'var(--muted)' }}>
                   {totalClicksDone} / {totalTargetClicks}
                 </span>
               </div>
@@ -458,8 +426,8 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
                       left: `${pt.x}%`,
                       top: `${pt.y}%`,
                       transform: 'translate(-50%, -50%)',
-                      width: isCurrent ? '40px' : '32px',
-                      height: isCurrent ? '40px' : '32px',
+                      width: isCurrent ? '36px' : '30px',
+                      height: isCurrent ? '36px' : '30px',
                       borderRadius: '50%',
                       border: isDone
                         ? '1px solid var(--ok)'
@@ -479,7 +447,7 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
                       display: 'grid',
                       placeItems: 'center',
                       boxShadow: 'none',
-                      transition: 'width 0.15s ease, height 0.15s ease, background 0.15s ease',
+                      transition: 'width 0.12s ease, height 0.12s ease',
                       zIndex: isCurrent ? 20 : 5
                     }}
                   >
@@ -496,21 +464,21 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
               <div
                 style={{
                   position: 'absolute',
-                  top: '12px',
+                  top: '10px',
                   left: '50%',
                   transform: 'translateX(-50%)',
                   background: 'var(--panel)',
-                  padding: '6px 16px',
-                  borderRadius: '20px',
+                  padding: '4px 14px',
+                  borderRadius: '16px',
                   border: '1px solid var(--line)',
                   textAlign: 'center',
                   zIndex: 10
                 }}
               >
-                <span style={{ fontSize: '0.82rem', color: 'var(--ink)' }}>
+                <span style={{ fontSize: '0.8rem', color: 'var(--ink)' }}>
                   Point {valIndex + 1} of {VALIDATION_POINTS.length} · <b>Fixate on the crosshair</b>
                 </span>
-                <span style={{ marginLeft: '10px', fontFamily: 'var(--f-mono)', fontSize: '0.78rem', color: 'var(--muted)' }}>
+                <span style={{ marginLeft: '8px', fontFamily: 'var(--f-mono)', fontSize: '0.76rem', color: 'var(--muted)' }}>
                   Sampling...
                 </span>
               </div>
@@ -534,38 +502,38 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
                     <div
                       style={{
                         position: 'relative',
-                        width: '52px',
-                        height: '52px',
+                        width: '48px',
+                        height: '48px',
                         display: 'grid',
                         placeItems: 'center'
                       }}
                     >
-                      <svg width="52" height="52" style={{ position: 'absolute', transform: 'rotate(-90deg)' }}>
+                      <svg width="48" height="48" style={{ position: 'absolute', transform: 'rotate(-90deg)' }}>
                         <circle
-                          cx="26"
-                          cy="26"
-                          r="22"
+                          cx="24"
+                          cy="24"
+                          r="20"
                           stroke="var(--line)"
                           strokeWidth="2"
                           fill="none"
                         />
                         <circle
-                          cx="26"
-                          cy="26"
-                          r="22"
+                          cx="24"
+                          cy="24"
+                          r="20"
                           stroke="var(--accent)"
                           strokeWidth="2.5"
                           fill="none"
-                          strokeDasharray="138"
-                          strokeDashoffset={138 - (138 * valProgress) / 100}
+                          strokeDasharray="125"
+                          strokeDashoffset={125 - (125 * valProgress) / 100}
                           style={{ transition: 'stroke-dashoffset 0.1s linear' }}
                         />
                       </svg>
 
                       <div
                         style={{
-                          width: '28px',
-                          height: '28px',
+                          width: '26px',
+                          height: '26px',
                           borderRadius: '50%',
                           background: 'var(--raised)',
                           border: '1px solid var(--line-strong)',
@@ -582,7 +550,7 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
                         fontSize: '11px',
                         fontFamily: 'var(--f-mono)',
                         color: 'var(--muted)',
-                        marginTop: '6px'
+                        marginTop: '4px'
                       }}
                     >
                       Hold gaze
@@ -595,7 +563,7 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
 
           {/* Phase 3: Verified - Live AOI Verification Arena */}
           {phase === 'verified' && accuracyReport && (
-            <div style={{ position: 'relative', width: '100%', height: '100%', padding: '16px' }}>
+            <div style={{ position: 'relative', width: '100%', height: '100%', padding: '10px 14px', boxSizing: 'border-box' }}>
               {/* Report Summary Bar */}
               <div
                 style={{
@@ -603,19 +571,19 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   background: 'var(--panel)',
-                  padding: '8px 14px',
-                  borderRadius: '10px',
+                  padding: '6px 12px',
+                  borderRadius: '8px',
                   border: '1px solid var(--line)',
-                  marginBottom: '12px'
+                  marginBottom: '8px'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '4px',
-                      padding: '2px 8px',
+                      padding: '2px 6px',
                       borderRadius: '4px',
                       background: 'var(--sunken)',
                       border: '1px solid var(--line)',
@@ -625,7 +593,7 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
                           : accuracyReport.rating === 'adequate'
                           ? 'var(--ink)'
                           : 'var(--hint)',
-                      fontSize: '0.78rem',
+                      fontSize: '0.74rem',
                       fontFamily: 'var(--f-mono)',
                       fontWeight: 500
                     }}
@@ -640,17 +608,17 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
                     </span>
                   </span>
 
-                  <span style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>
-                    Mean Error: <span style={{ color: 'var(--ink)', fontFamily: 'var(--f-mono)' }}>{accuracyReport.meanErrorPx} px</span> ({accuracyReport.visualAngleDeg}° visual angle) · Precision: <span style={{ color: 'var(--ink)', fontFamily: 'var(--f-mono)' }}>{accuracyReport.accuracyPct}%</span>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--muted)' }}>
+                    Mean Error: <span style={{ color: 'var(--ink)', fontFamily: 'var(--f-mono)' }}>{accuracyReport.meanErrorPx} px</span> ({accuracyReport.visualAngleDeg}°) · Precision: <span style={{ color: 'var(--ink)', fontFamily: 'var(--f-mono)' }}>{accuracyReport.accuracyPct}%</span>
                   </span>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontSize: '0.78rem', color: 'var(--muted)' }}>Fixation:</span>
+                  <span style={{ fontSize: '0.74rem', color: 'var(--muted)' }}>Fixation:</span>
                   <span
                     style={{
                       fontFamily: 'var(--f-mono)',
-                      fontSize: '0.78rem',
+                      fontSize: '0.74rem',
                       color: activeAoi ? 'var(--ok)' : 'var(--muted)'
                     }}
                   >
@@ -659,37 +627,37 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
                 </div>
               </div>
 
-              {/* 4 Representative AOI Cards with real line icons */}
+              {/* 4 Representative AOI Cards */}
               <div
                 style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(2, 1fr)',
                   gridTemplateRows: 'repeat(2, 1fr)',
-                  gap: '12px',
-                  height: 'calc(100% - 58px)'
+                  gap: '8px',
+                  height: 'calc(100% - 44px)'
                 }}
               >
                 <div
                   data-test-aoi="Figure A"
                   style={{
-                    borderRadius: '10px',
+                    borderRadius: '8px',
                     border: `1px solid ${activeAoi === 'Figure A' ? 'var(--ok)' : 'var(--line)'}`,
                     background: activeAoi === 'Figure A' ? 'var(--raised)' : 'var(--sunken)',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '8px',
+                    gap: '4px',
                     transition: 'border-color 0.12s ease, background 0.12s ease'
                   }}
                 >
                   <Icon name="i-triangle" size="md" style={{ color: activeAoi === 'Figure A' ? 'var(--ok)' : 'var(--muted)' }} />
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontWeight: 500, fontSize: '0.85rem', color: 'var(--ink)' }}>
+                    <div style={{ fontWeight: 500, fontSize: '0.82rem', color: 'var(--ink)' }}>
                       Figure A (Source Analog)
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '2px' }}>
-                      Primary problem geometry
+                    <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>
+                      Look here to test gaze
                     </div>
                   </div>
                 </div>
@@ -697,24 +665,24 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
                 <div
                   data-test-aoi="Figure B"
                   style={{
-                    borderRadius: '10px',
+                    borderRadius: '8px',
                     border: `1px solid ${activeAoi === 'Figure B' ? 'var(--ok)' : 'var(--line)'}`,
                     background: activeAoi === 'Figure B' ? 'var(--raised)' : 'var(--sunken)',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '8px',
+                    gap: '4px',
                     transition: 'border-color 0.12s ease, background 0.12s ease'
                   }}
                 >
                   <Icon name="i-square" size="md" style={{ color: activeAoi === 'Figure B' ? 'var(--ok)' : 'var(--muted)' }} />
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontWeight: 500, fontSize: '0.85rem', color: 'var(--ink)' }}>
+                    <div style={{ fontWeight: 500, fontSize: '0.82rem', color: 'var(--ink)' }}>
                       Figure B (Transformation Target)
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '2px' }}>
-                      Transformed state
+                    <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>
+                      Look here to test gaze
                     </div>
                   </div>
                 </div>
@@ -722,24 +690,24 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
                 <div
                   data-test-aoi="Hint Panel"
                   style={{
-                    borderRadius: '10px',
+                    borderRadius: '8px',
                     border: `1px solid ${activeAoi === 'Hint Panel' ? 'var(--ok)' : 'var(--line)'}`,
                     background: activeAoi === 'Hint Panel' ? 'var(--raised)' : 'var(--sunken)',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '8px',
+                    gap: '4px',
                     transition: 'border-color 0.12s ease, background 0.12s ease'
                   }}
                 >
                   <Icon name="i-bulb" size="md" style={{ color: activeAoi === 'Hint Panel' ? 'var(--ok)' : 'var(--muted)' }} />
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontWeight: 500, fontSize: '0.85rem', color: 'var(--ink)' }}>
+                    <div style={{ fontWeight: 500, fontSize: '0.82rem', color: 'var(--ink)' }}>
                       Hint Controls & Clues
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '2px' }}>
-                      Interactive step-by-step guidance
+                    <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>
+                      Look here to test gaze
                     </div>
                   </div>
                 </div>
@@ -747,24 +715,24 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
                 <div
                   data-test-aoi="Answer Options"
                   style={{
-                    borderRadius: '10px',
+                    borderRadius: '8px',
                     border: `1px solid ${activeAoi === 'Answer Options' ? 'var(--ok)' : 'var(--line)'}`,
                     background: activeAoi === 'Answer Options' ? 'var(--raised)' : 'var(--sunken)',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '8px',
+                    gap: '4px',
                     transition: 'border-color 0.12s ease, background 0.12s ease'
                   }}
                 >
                   <Icon name="i-layout-grid" size="md" style={{ color: activeAoi === 'Answer Options' ? 'var(--ok)' : 'var(--muted)' }} />
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontWeight: 500, fontSize: '0.85rem', color: 'var(--ink)' }}>
+                    <div style={{ fontWeight: 500, fontSize: '0.82rem', color: 'var(--ink)' }}>
                       Answer Options (1–4)
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '2px' }}>
-                      Candidate solution set
+                    <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>
+                      Look here to test gaze
                     </div>
                   </div>
                 </div>
@@ -807,8 +775,9 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
           className="edge"
           style={{
             borderTop: '1px solid var(--line)',
-            paddingTop: '16px',
-            alignItems: 'center'
+            paddingTop: '8px',
+            alignItems: 'center',
+            flexShrink: 0
           }}
         >
           <div className="l" style={{ gap: '8px' }}>
@@ -817,7 +786,7 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
                 type="button"
                 className="ibtn tb"
                 onClick={onBack}
-                style={{ height: '36px', padding: '0 12px', borderRadius: '8px' }}
+                style={{ height: '32px', padding: '0 12px', borderRadius: '6px', fontSize: '0.8rem' }}
               >
                 <Icon name="i-arrow-left" size="sm" />
                 <span>Back</span>
@@ -828,7 +797,7 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
               type="button"
               className="ibtn tb"
               onClick={handleRecalibrate}
-              style={{ height: '36px', padding: '0 12px', borderRadius: '8px' }}
+              style={{ height: '32px', padding: '0 12px', borderRadius: '6px', fontSize: '0.8rem' }}
               title="Reset calibration model and redo 9-point setup"
             >
               <Icon name="i-replay" size="sm" />
@@ -842,7 +811,7 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
                 type="button"
                 className="ibtn tb"
                 onClick={startVerification}
-                style={{ height: '36px', padding: '0 12px', borderRadius: '8px' }}
+                style={{ height: '32px', padding: '0 12px', borderRadius: '6px', fontSize: '0.8rem' }}
               >
                 <span>Skip to Verification</span>
                 <Icon name="i-arrow" size="sm" />
@@ -855,13 +824,13 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
                 className="ibtn primary"
                 onClick={onComplete}
                 style={{
-                  height: '38px',
-                  padding: '0 18px',
-                  borderRadius: '8px',
+                  height: '34px',
+                  padding: '0 16px',
+                  borderRadius: '6px',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  fontSize: '0.88rem',
+                  gap: '6px',
+                  fontSize: '0.84rem',
                   fontWeight: 600
                 }}
               >
@@ -876,13 +845,13 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
                 className="ibtn primary"
                 onClick={onComplete}
                 style={{
-                  height: '36px',
-                  padding: '0 14px',
-                  borderRadius: '8px',
+                  height: '32px',
+                  padding: '0 12px',
+                  borderRadius: '6px',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  fontSize: '0.84rem'
+                  gap: '6px',
+                  fontSize: '0.8rem'
                 }}
                 title="Proceed directly to trials"
               >
