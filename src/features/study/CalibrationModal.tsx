@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { Icon } from '../../components/common/Icon';
+import { gazeTracker } from '../../core/gaze/webgazer-service';
 
 interface CalibrationModalProps {
   isOpen: boolean;
@@ -17,7 +18,12 @@ export const CalibrationModal: React.FC<CalibrationModalProps> = ({ isOpen, onCl
   const [clickCounts, setClickCounts] = useState<Record<number, number>>({});
   const CLICKS_PER_POINT = 5;
 
-  const handlePointClick = (id: number) => {
+  const handlePointClick = (id: number, e: React.MouseEvent) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickX = rect.left + rect.width / 2;
+    const clickY = rect.top + rect.height / 2;
+    gazeTracker.recordCalibrationPoint(clickX, clickY);
+
     const cur = (clickCounts[id] || 0) + 1;
     const updated = { ...clickCounts, [id]: cur };
     setClickCounts(updated);
@@ -26,6 +32,11 @@ export const CalibrationModal: React.FC<CalibrationModalProps> = ({ isOpen, onCl
     if (allDone) {
       setTimeout(() => onClose(true), 300);
     }
+  };
+
+  const handleReset = () => {
+    gazeTracker.clearCalibration();
+    setClickCounts({});
   };
 
   const totalClicksDone = Object.values(clickCounts).reduce((a, b) => a + Math.min(b, CLICKS_PER_POINT), 0);
@@ -68,7 +79,7 @@ export const CalibrationModal: React.FC<CalibrationModalProps> = ({ isOpen, onCl
             <button
               key={pt.id}
               type="button"
-              onClick={() => handlePointClick(pt.id)}
+              onClick={(e) => handlePointClick(pt.id, e)}
               disabled={isDone}
               aria-label={`Calibration point ${pt.id + 1}`}
               style={{
@@ -99,16 +110,28 @@ export const CalibrationModal: React.FC<CalibrationModalProps> = ({ isOpen, onCl
       </div>
 
       <div className="edge" style={{ marginTop: '14px', borderTop: '1px solid var(--line)', paddingTop: '12px' }}>
-        <button
-          type="button"
-          className="ibtn tb"
-          onClick={() => onClose(false)}
-          style={{ height: '36px', padding: '0 14px', borderRadius: '8px' }}
-        >
-          <Icon name="i-arrow-left" size="sm" />
-          <span>Back to Study</span>
-        </button>
-        <span className="meta">Click all 9 points to finish calibration</span>
+        <div className="l" style={{ gap: '8px' }}>
+          <button
+            type="button"
+            className="ibtn tb"
+            onClick={() => onClose(false)}
+            style={{ height: '36px', padding: '0 14px', borderRadius: '8px' }}
+          >
+            <Icon name="i-arrow-left" size="sm" />
+            <span>Back to Study</span>
+          </button>
+          <button
+            type="button"
+            className="ibtn tb"
+            onClick={handleReset}
+            style={{ height: '36px', padding: '0 12px', borderRadius: '8px' }}
+            title="Reset calibration model and clear data"
+          >
+            <Icon name="i-replay" size="sm" />
+            <span>Reset</span>
+          </button>
+        </div>
+        <span className="meta">Click all 9 points (5x each) to finish calibration</span>
       </div>
     </Modal>
   );

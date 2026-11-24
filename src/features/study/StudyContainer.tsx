@@ -7,6 +7,7 @@ import { journeyTracker } from '../../core/gaze/journey-tracker';
 import { SETS } from '../../core/geometry/problems';
 import { WelcomeStep } from './WelcomeStep';
 import { IntroStep } from './IntroStep';
+import { CalibrationStep } from './CalibrationStep';
 import { PuzzleTrial } from './PuzzleTrial';
 import { EffortStep } from './questionnaires/EffortStep';
 import { NasaTlxStep } from './questionnaires/NasaTlxStep';
@@ -20,7 +21,7 @@ interface StudyContainerProps {
   onStepChange?: (isLanding: boolean) => void;
 }
 
-type StudyStep = 'welcome' | 'intro' | 'trial' | 'effort' | 'tlx' | 'agency' | 'sus' | 'done';
+type StudyStep = 'welcome' | 'intro' | 'calibrate' | 'trial' | 'effort' | 'tlx' | 'agency' | 'sus' | 'done';
 
 export const StudyContainer: React.FC<StudyContainerProps> = ({ onNavigate, onStepChange }) => {
   const [step, setStep] = useState<StudyStep>('welcome');
@@ -129,8 +130,15 @@ export const StudyContainer: React.FC<StudyContainerProps> = ({ onNavigate, onSt
       {step === 'intro' && session && (
         <IntroStep
           mode={session.mode}
-          onBegin={handleBeginTrials}
+          onBegin={() => setStep('calibrate')}
           onBack={() => setStep('welcome')}
+        />
+      )}
+      {step === 'calibrate' && session && (
+        <CalibrationStep
+          participantId={session.id}
+          onComplete={handleBeginTrials}
+          onBack={() => setStep('intro')}
         />
       )}
       {step === 'trial' && session && (

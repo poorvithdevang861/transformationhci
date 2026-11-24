@@ -63,6 +63,12 @@ export const IntroStep: React.FC<IntroStepProps> = ({ mode, onBegin, onBack }) =
               Select candidate Option 1–4 and click <b>Confirm answer</b> when ready.
             </span>
           </div>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', fontSize: '0.88rem' }}>
+            <span style={{ color: 'var(--ok)', fontWeight: 600 }}>4.</span>
+            <span style={{ color: 'var(--fg)', lineHeight: 1.45 }}>
+              Before Question 1 starts, you will calibrate the eye-tracker and verify gaze accuracy.
+            </span>
+          </div>
         </div>
 
         <div className="edge" style={{ borderTop: '1px solid var(--line)', paddingTop: '16px' }}>
@@ -101,7 +107,7 @@ export const IntroStep: React.FC<IntroStepProps> = ({ mode, onBegin, onBack }) =
                 fontWeight: 600
               }}
             >
-              <span>Begin trial 1</span>
+              <span>Proceed to Eye-Gaze Calibration</span>
               <Icon name="i-arrow" />
             </button>
           </div>

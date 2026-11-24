@@ -173,6 +173,43 @@ class WebGazerService {
     });
   }
 
+  public recordCalibrationPoint(x: number, y: number) {
+    try {
+      const wg = (window as unknown as { webgazer?: any }).webgazer;
+      if (wg && typeof wg.recordScreenPosition === 'function') {
+        wg.recordScreenPosition(x, y, 'click');
+      }
+    } catch (e) {
+      console.warn('Error recording calibration point to WebGazer:', e);
+    }
+  }
+
+  public clearCalibration() {
+    try {
+      const wg = (window as unknown as { webgazer?: any }).webgazer;
+      if (wg && typeof wg.clearData === 'function') {
+        wg.clearData();
+      }
+    } catch (e) {
+      console.warn('Error clearing WebGazer calibration data:', e);
+    }
+  }
+
+  public async getCurrentPrediction(): Promise<{ x: number; y: number } | null> {
+    try {
+      const wg = (window as unknown as { webgazer?: any }).webgazer;
+      if (wg && typeof wg.getCurrentPrediction === 'function') {
+        const pred = await wg.getCurrentPrediction();
+        if (pred && typeof pred.x === 'number' && typeof pred.y === 'number') {
+          return { x: pred.x, y: pred.y };
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+    return null;
+  }
+
   public get isActive() { return this.isCameraActive; }
   public get isFallback() { return this.isMouseFallback; }
 }
