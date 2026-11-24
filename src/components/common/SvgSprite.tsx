@@ -203,6 +203,28 @@ export const SvgSprite: React.FC = () => {
       <symbol id="i-moon" viewBox="0 0 24 24">
         <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       </symbol>
+      <symbol id="i-user" viewBox="0 0 24 24">
+        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="12" cy="7" r="4" fill="none" stroke="currentColor" strokeWidth="2" />
+      </symbol>
+      <symbol id="i-ruler" viewBox="0 0 24 24">
+        <path d="M21.3 8.7 8.7 21.3c-1 1-2.5 1-3.4 0l-2.6-2.6c-1-1-1-2.5 0-3.4L15.3 2.7c1-1 2.5-1 3.4 0l2.6 2.6c1 1 1 2.5 0 3.4Z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <line x1="14.5" y1="5.5" x2="16.5" y2="7.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        <line x1="11" y1="9" x2="14" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        <line x1="7.5" y1="12.5" x2="9.5" y2="14.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      </symbol>
+      <symbol id="i-triangle" viewBox="0 0 24 24">
+        <path d="M13.73 4a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </symbol>
+      <symbol id="i-square" viewBox="0 0 24 24">
+        <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </symbol>
+      <symbol id="i-layout-grid" viewBox="0 0 24 24">
+        <rect x="3" y="3" width="7" height="7" rx="1" fill="none" stroke="currentColor" strokeWidth="2" />
+        <rect x="14" y="3" width="7" height="7" rx="1" fill="none" stroke="currentColor" strokeWidth="2" />
+        <rect x="14" y="14" width="7" height="7" rx="1" fill="none" stroke="currentColor" strokeWidth="2" />
+        <rect x="3" y="14" width="7" height="7" rx="1" fill="none" stroke="currentColor" strokeWidth="2" />
+      </symbol>
     </svg>
   );
 };
