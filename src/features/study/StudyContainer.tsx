@@ -125,19 +125,7 @@ export const StudyContainer: React.FC<StudyContainerProps> = ({ onNavigate, onSt
   };
 
   return (
-    <div
-      style={{
-        maxWidth: step === 'calibrate' ? '1060px' : '1200px',
-        margin: '0 auto',
-        width: '100%',
-        paddingBottom: step === 'calibrate' ? '0' : '32px',
-        flex: step === 'calibrate' ? 1 : undefined,
-        minHeight: step === 'calibrate' ? 0 : undefined,
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: step === 'calibrate' ? 'hidden' : 'visible'
-      }}
-    >
+    <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%', paddingBottom: '24px' }}>
       {step === 'welcome' && <WelcomeStep onStart={handleStartWelcome} />}
       {step === 'intro' && session && (
         <IntroStep

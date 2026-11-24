@@ -15,23 +15,23 @@ interface CalibPoint {
 }
 
 const CALIB_POINTS: CalibPoint[] = [
-  { id: 0, x: 12, y: 16 },
-  { id: 1, x: 50, y: 16 },
-  { id: 2, x: 88, y: 16 },
-  { id: 3, x: 12, y: 50 },
+  { id: 0, x: 10, y: 14 },
+  { id: 1, x: 50, y: 14 },
+  { id: 2, x: 90, y: 14 },
+  { id: 3, x: 10, y: 50 },
   { id: 4, x: 50, y: 50 },
-  { id: 5, x: 88, y: 50 },
-  { id: 6, x: 12, y: 84 },
-  { id: 7, x: 50, y: 84 },
-  { id: 8, x: 88, y: 84 }
+  { id: 5, x: 90, y: 50 },
+  { id: 6, x: 10, y: 86 },
+  { id: 7, x: 50, y: 86 },
+  { id: 8, x: 90, y: 86 }
 ];
 
 const VALIDATION_POINTS: CalibPoint[] = [
   { id: 0, x: 50, y: 50 },
-  { id: 1, x: 22, y: 24 },
-  { id: 2, x: 78, y: 24 },
-  { id: 3, x: 22, y: 76 },
-  { id: 4, x: 78, y: 76 }
+  { id: 1, x: 20, y: 22 },
+  { id: 2, x: 80, y: 22 },
+  { id: 3, x: 20, y: 78 },
+  { id: 4, x: 80, y: 78 }
 ];
 
 const CLICKS_PER_POINT = 5;
@@ -48,39 +48,55 @@ interface AccuracyReport {
 export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, onBack, participantId }) => {
   const [phase, setPhase] = useState<StepPhase>('calibrating');
   const [clickCounts, setClickCounts] = useState<Record<number, number>>({});
-  const [activePointIdx, setActivePointIdx] = useState(0);
 
   // Verification state
   const [valIndex, setValIndex] = useState(0);
   const [valProgress, setValProgress] = useState(0);
-  const [valErrors, setValErrors] = useState<number[]>([]);
   const [accuracyReport, setAccuracyReport] = useState<AccuracyReport | null>(null);
 
-  // Live gaze test state
-  const [liveGaze, setLiveGaze] = useState<{ x: number; y: number } | null>(null);
+  // Live active AOI state (only updated on boundary transitions)
   const [activeAoi, setActiveAoi] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const dotRef = useRef<HTMLDivElement>(null);
+  const latestGazeRef = useRef<{ x: number; y: number } | null>(null);
+  const currentAoiRef = useRef<string | null>(null);
+
   const isWebcam = gazeTracker.isActive;
   const isFallback = gazeTracker.isFallback;
 
-  // Ensure page is scrolled to top on mount
+  // Ensure view starts at top on mount
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, []);
 
+  // Subscribe to live gaze stream - updates refs and DOM directly without triggering component re-renders
   useEffect(() => {
     const unsub = gazeTracker.subscribe((pt) => {
-      setLiveGaze(pt);
+      latestGazeRef.current = pt;
 
+      // Update cursor position directly via DOM ref for 60fps performance
+      if (dotRef.current && containerRef.current) {
+        const cRect = containerRef.current.getBoundingClientRect();
+        const relX = pt.x - cRect.left;
+        const relY = pt.y - cRect.top;
+
+        if (relX >= 0 && relX <= cRect.width && relY >= 0 && relY <= cRect.height) {
+          dotRef.current.style.display = 'block';
+          dotRef.current.style.left = `${relX}px`;
+          dotRef.current.style.top = `${relY}px`;
+        } else {
+          dotRef.current.style.display = 'none';
+        }
+      }
+
+      // Check AOI transition with boundary memoization
       if (phase === 'verified') {
         const el = document.elementFromPoint(pt.x, pt.y);
-        const aoiEl = el?.closest('[data-test-aoi]');
-        if (aoiEl) {
-          const key = aoiEl.getAttribute('data-test-aoi');
-          setActiveAoi(key);
-        } else {
-          setActiveAoi(null);
+        const aoiKey = el?.closest('[data-test-aoi]')?.getAttribute('data-test-aoi') || null;
+        if (aoiKey !== currentAoiRef.current) {
+          currentAoiRef.current = aoiKey;
+          setActiveAoi(aoiKey);
         }
       }
     });
@@ -101,17 +117,11 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
     const updated = { ...clickCounts, [pt.id]: cur };
     setClickCounts(updated);
 
-    if (cur >= CLICKS_PER_POINT) {
-      if (activePointIdx < CALIB_POINTS.length - 1) {
-        setActivePointIdx((prev) => prev + 1);
-      }
-    }
-
     const allDone = CALIB_POINTS.every((p) => (updated[p.id] || 0) >= CLICKS_PER_POINT);
     if (allDone) {
       setTimeout(() => {
         startVerification();
-      }, 350);
+      }, 300);
     }
   };
 
@@ -119,78 +129,86 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
     setPhase('verifying');
     setValIndex(0);
     setValProgress(0);
-    setValErrors([]);
   };
 
+  // Robust verification sequence - only depends on [phase] so live gaze never resets the timer!
   useEffect(() => {
     if (phase !== 'verifying') return;
 
-    let timer: ReturnType<typeof setTimeout>;
-    const currentTarget = VALIDATION_POINTS[valIndex];
-    const sampledErrors: number[] = [];
+    let isMounted = true;
+    const recordedErrors: number[] = [];
 
-    const interval = setInterval(() => {
-      setValProgress((prev) => {
-        if (prev >= 100) return 100;
-        return prev + 10;
-      });
+    const runTarget = (idx: number) => {
+      if (!isMounted) return;
+      setValIndex(idx);
+      setValProgress(0);
 
-      if (containerRef.current && liveGaze) {
-        const cRect = containerRef.current.getBoundingClientRect();
-        const targetScreenX = cRect.left + (currentTarget.x / 100) * cRect.width;
-        const targetScreenY = cRect.top + (currentTarget.y / 100) * cRect.height;
+      const target = VALIDATION_POINTS[idx];
+      const start = performance.now();
+      const targetErrors: number[] = [];
 
-        const dist = Math.sqrt(
-          Math.pow(liveGaze.x - targetScreenX, 2) + Math.pow(liveGaze.y - targetScreenY, 2)
-        );
-        sampledErrors.push(dist);
-      }
-    }, 120);
+      const progressInterval = setInterval(() => {
+        if (!isMounted) return;
+        const elapsed = performance.now() - start;
+        const pct = Math.min(100, Math.round((elapsed / 1100) * 100));
+        setValProgress(pct);
 
-    timer = setTimeout(() => {
-      clearInterval(interval);
-      const avgErrorForTarget =
-        sampledErrors.length > 0
-          ? sampledErrors.reduce((a, b) => a + b, 0) / sampledErrors.length
-          : Math.random() * 15 + 35;
+        const currentGaze = latestGazeRef.current;
+        if (currentGaze && containerRef.current) {
+          const cRect = containerRef.current.getBoundingClientRect();
+          const targetScreenX = cRect.left + (target.x / 100) * cRect.width;
+          const targetScreenY = cRect.top + (target.y / 100) * cRect.height;
+          const dist = Math.sqrt(
+            Math.pow(currentGaze.x - targetScreenX, 2) + Math.pow(currentGaze.y - targetScreenY, 2)
+          );
+          targetErrors.push(dist);
+        }
+      }, 60);
 
-      const nextErrors = [...valErrors, Math.round(avgErrorForTarget)];
-      setValErrors(nextErrors);
+      setTimeout(() => {
+        clearInterval(progressInterval);
+        if (!isMounted) return;
 
-      if (valIndex + 1 < VALIDATION_POINTS.length) {
-        setValIndex((idx) => idx + 1);
-        setValProgress(0);
-      } else {
-        const totalAvg = Math.round(nextErrors.reduce((a, b) => a + b, 0) / nextErrors.length);
-        const visualAngle = Number((totalAvg / 38).toFixed(1));
-        const accuracyPct = Math.max(50, Math.min(98, Math.round(100 - (totalAvg / 300) * 100)));
+        const avgTargetErr = targetErrors.length > 0
+          ? targetErrors.reduce((a, b) => a + b, 0) / targetErrors.length
+          : 45;
+        recordedErrors.push(Math.round(avgTargetErr));
 
-        let rating: 'optimal' | 'adequate' | 'recalibrate' = 'optimal';
-        if (totalAvg > 95) rating = 'recalibrate';
-        else if (totalAvg > 65) rating = 'adequate';
+        if (idx + 1 < VALIDATION_POINTS.length) {
+          runTarget(idx + 1);
+        } else {
+          // Validation complete
+          const totalAvg = Math.round(recordedErrors.reduce((a, b) => a + b, 0) / recordedErrors.length);
+          const visualAngle = Number((totalAvg / 38).toFixed(1));
+          const accuracyPct = Math.max(50, Math.min(98, Math.round(100 - (totalAvg / 300) * 100)));
 
-        setAccuracyReport({
-          meanErrorPx: totalAvg,
-          visualAngleDeg: visualAngle,
-          accuracyPct,
-          rating
-        });
-        setPhase('verified');
-      }
-    }, 1300);
+          let rating: 'optimal' | 'adequate' | 'recalibrate' = 'optimal';
+          if (totalAvg > 95) rating = 'recalibrate';
+          else if (totalAvg > 65) rating = 'adequate';
+
+          setAccuracyReport({
+            meanErrorPx: totalAvg,
+            visualAngleDeg: visualAngle,
+            accuracyPct,
+            rating
+          });
+          setPhase('verified');
+        }
+      }, 1150);
+    };
+
+    runTarget(0);
 
     return () => {
-      clearInterval(interval);
-      clearTimeout(timer);
+      isMounted = false;
     };
-  }, [phase, valIndex, liveGaze]);
+  }, [phase]);
 
   const handleRecalibrate = () => {
     gazeTracker.clearCalibration();
     setClickCounts({});
-    setActivePointIdx(0);
     setValIndex(0);
-    setValErrors([]);
+    setValProgress(0);
     setAccuracyReport(null);
     setPhase('calibrating');
   };
@@ -203,58 +221,44 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
   const progressPct = Math.round((totalClicksDone / totalTargetClicks) * 100);
 
   return (
-    <div
-      style={{
-        flex: 1,
-        minHeight: 0,
-        width: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        boxSizing: 'border-box',
-        overflow: 'hidden'
-      }}
-    >
+    <div style={{ maxWidth: '840px', margin: '0 auto', width: '100%' }}>
       <div
         className="panel"
         style={{
-          flex: 1,
-          minHeight: 0,
           borderRadius: '12px',
-          padding: '12px 16px',
+          padding: '16px 20px',
           border: '1px solid var(--line)',
           background: 'var(--panel)',
           display: 'flex',
           flexDirection: 'column',
-          gap: '8px',
-          boxShadow: 'none',
-          boxSizing: 'border-box',
-          overflow: 'hidden'
+          gap: '10px',
+          boxShadow: 'none'
         }}
       >
-        {/* Header Row: Concise & Non-cluttered */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+        {/* Header Row: Clean, unified, non-cutting */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--ink)' }}>
+            <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--ink)' }}>
               Eye-Gaze Calibration
             </span>
-            <span style={{ color: 'var(--line-strong)', fontSize: '0.8rem' }}>·</span>
-            <span style={{ fontSize: '0.78rem', color: 'var(--muted)' }}>
+            <span style={{ color: 'var(--line-strong)' }}>·</span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>
               {phase === 'calibrating'
                 ? 'Fixate on each target and click 5 times'
                 : phase === 'verifying'
-                ? 'Fixate steadily on the crosshair'
+                ? 'Hold gaze on target crosshair'
                 : 'Shift gaze between regions to test tracking'}
             </span>
           </div>
 
-          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <span
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '5px',
-                padding: '2px 8px',
-                borderRadius: '4px',
+                padding: '3px 8px',
+                borderRadius: '5px',
                 background: 'var(--sunken)',
                 border: '1px solid var(--line)',
                 color: isWebcam ? 'var(--ok)' : 'var(--hint)',
@@ -276,8 +280,8 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
             {participantId && (
               <span
                 style={{
-                  padding: '2px 8px',
-                  borderRadius: '4px',
+                  padding: '3px 8px',
+                  borderRadius: '5px',
                   background: 'var(--sunken)',
                   border: '1px solid var(--line)',
                   fontFamily: 'var(--f-mono)',
@@ -291,18 +295,17 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
           </div>
         </div>
 
-        {/* Compact Utility Strip: Guidelines & Stepper */}
+        {/* Compact Setup Guidelines & Stepper */}
         <div
           style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             background: 'var(--sunken)',
-            padding: '4px 10px',
+            padding: '5px 12px',
             borderRadius: '6px',
             border: '1px solid var(--line)',
-            fontSize: '0.74rem',
-            flexShrink: 0
+            fontSize: '0.76rem'
           }}
         >
           <div style={{ display: 'flex', gap: '14px', alignItems: 'center', color: 'var(--muted)' }}>
@@ -312,7 +315,7 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
             </span>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
               <Icon name="i-sun" size="sm" />
-              <span>Even lighting</span>
+              <span>Even light</span>
             </span>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
               <Icon name="i-user" size="sm" />
@@ -335,14 +338,13 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
           </div>
         </div>
 
-        {/* Central Display Stage (Responsive, fits available space without scroll) */}
+        {/* Central Display Arena (Clean 370px height, comfortably fits all laptops) */}
         <div
           ref={containerRef}
           style={{
-            flex: 1,
-            minHeight: 0,
             position: 'relative',
             width: '100%',
+            height: '370px',
             background: 'var(--sunken)',
             border: '1px solid var(--line)',
             borderRadius: '8px',
@@ -367,18 +369,17 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
                 }}
               >
                 <span style={{ fontSize: '0.78rem', color: 'var(--ink)' }}>
-                  Click each dot 5 times:
+                  Click each target 5 times:
                 </span>
                 <span style={{ marginLeft: '6px', fontFamily: 'var(--f-mono)', fontSize: '0.76rem', color: 'var(--muted)' }}>
                   {totalClicksDone} / {totalTargetClicks}
                 </span>
               </div>
 
-              {CALIB_POINTS.map((pt, idx) => {
+              {CALIB_POINTS.map((pt) => {
                 const clicks = clickCounts[pt.id] || 0;
                 const isDone = clicks >= CLICKS_PER_POINT;
                 const remaining = Math.max(0, CLICKS_PER_POINT - clicks);
-                const isCurrent = idx === activePointIdx && !isDone;
 
                 return (
                   <button
@@ -392,29 +393,24 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
                       left: `${pt.x}%`,
                       top: `${pt.y}%`,
                       transform: 'translate(-50%, -50%)',
-                      width: isCurrent ? '34px' : '28px',
-                      height: isCurrent ? '34px' : '28px',
+                      width: '32px',
+                      height: '32px',
                       borderRadius: '50%',
                       border: isDone
                         ? '1px solid var(--ok)'
-                        : isCurrent
-                        ? '2px solid #ffffff'
                         : '1px solid var(--line-strong)',
                       background: isDone
                         ? 'var(--ok)'
-                        : isCurrent
-                        ? 'var(--accent)'
                         : 'var(--raised)',
                       color: isDone ? '#111113' : '#ffffff',
                       fontWeight: 600,
-                      fontSize: isDone ? '12px' : '10px',
+                      fontSize: isDone ? '13px' : '11px',
                       fontFamily: 'var(--f-mono)',
                       cursor: isDone ? 'default' : 'pointer',
                       display: 'grid',
                       placeItems: 'center',
                       boxShadow: 'none',
-                      transition: 'width 0.1s ease, height 0.1s ease',
-                      zIndex: isCurrent ? 20 : 5
+                      zIndex: 5
                     }}
                   >
                     {isDone ? '✓' : remaining}
@@ -424,7 +420,7 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
             </>
           )}
 
-          {/* Phase 2: Spatial Accuracy Verification */}
+          {/* Phase 2: Accuracy Verification */}
           {phase === 'verifying' && (
             <div style={{ position: 'relative', width: '100%', height: '100%' }}>
               <div
@@ -465,38 +461,38 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
                     <div
                       style={{
                         position: 'relative',
-                        width: '44px',
-                        height: '44px',
+                        width: '46px',
+                        height: '46px',
                         display: 'grid',
                         placeItems: 'center'
                       }}
                     >
-                      <svg width="44" height="44" style={{ position: 'absolute', transform: 'rotate(-90deg)' }}>
+                      <svg width="46" height="46" style={{ position: 'absolute', transform: 'rotate(-90deg)' }}>
                         <circle
-                          cx="22"
-                          cy="22"
-                          r="18"
+                          cx="23"
+                          cy="23"
+                          r="19"
                           stroke="var(--line)"
                           strokeWidth="2"
                           fill="none"
                         />
                         <circle
-                          cx="22"
-                          cy="22"
-                          r="18"
+                          cx="23"
+                          cy="23"
+                          r="19"
                           stroke="var(--accent)"
                           strokeWidth="2.5"
                           fill="none"
-                          strokeDasharray="113"
-                          strokeDashoffset={113 - (113 * valProgress) / 100}
-                          style={{ transition: 'stroke-dashoffset 0.1s linear' }}
+                          strokeDasharray="119"
+                          strokeDashoffset={119 - (119 * valProgress) / 100}
+                          style={{ transition: 'stroke-dashoffset 0.08s linear' }}
                         />
                       </svg>
 
                       <div
                         style={{
-                          width: '24px',
-                          height: '24px',
+                          width: '26px',
+                          height: '26px',
                           borderRadius: '50%',
                           background: 'var(--raised)',
                           border: '1px solid var(--line-strong)',
@@ -516,18 +512,18 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
 
           {/* Phase 3: Verified - Live AOI Verification Arena */}
           {phase === 'verified' && accuracyReport && (
-            <div style={{ position: 'relative', width: '100%', height: '100%', padding: '8px 10px', boxSizing: 'border-box' }}>
-              {/* Report Summary Bar */}
+            <div style={{ position: 'relative', width: '100%', height: '100%', padding: '8px 12px', boxSizing: 'border-box' }}>
+              {/* Summary Bar */}
               <div
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   background: 'var(--panel)',
-                  padding: '4px 10px',
+                  padding: '5px 10px',
                   borderRadius: '6px',
                   border: '1px solid var(--line)',
-                  marginBottom: '6px'
+                  marginBottom: '8px'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -536,7 +532,7 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '4px',
-                      padding: '1px 6px',
+                      padding: '2px 6px',
                       borderRadius: '4px',
                       background: 'var(--sunken)',
                       border: '1px solid var(--line)',
@@ -580,14 +576,14 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
                 </div>
               </div>
 
-              {/* 4 Representative AOI Cards */}
+              {/* 4 AOI Cards */}
               <div
                 style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(2, 1fr)',
                   gridTemplateRows: 'repeat(2, 1fr)',
-                  gap: '6px',
-                  height: 'calc(100% - 38px)'
+                  gap: '8px',
+                  height: 'calc(100% - 42px)'
                 }}
               >
                 <div
@@ -605,7 +601,7 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
                 >
                   <Icon name="i-triangle" size="md" style={{ color: activeAoi === 'Figure A' ? 'var(--ok)' : 'var(--muted)' }} />
                   <div>
-                    <div style={{ fontWeight: 500, fontSize: '0.8rem', color: 'var(--ink)' }}>
+                    <div style={{ fontWeight: 500, fontSize: '0.82rem', color: 'var(--ink)' }}>
                       Figure A
                     </div>
                     <div style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>
@@ -629,7 +625,7 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
                 >
                   <Icon name="i-square" size="md" style={{ color: activeAoi === 'Figure B' ? 'var(--ok)' : 'var(--muted)' }} />
                   <div>
-                    <div style={{ fontWeight: 500, fontSize: '0.8rem', color: 'var(--ink)' }}>
+                    <div style={{ fontWeight: 500, fontSize: '0.82rem', color: 'var(--ink)' }}>
                       Figure B
                     </div>
                     <div style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>
@@ -653,7 +649,7 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
                 >
                   <Icon name="i-bulb" size="md" style={{ color: activeAoi === 'Hint Panel' ? 'var(--ok)' : 'var(--muted)' }} />
                   <div>
-                    <div style={{ fontWeight: 500, fontSize: '0.8rem', color: 'var(--ink)' }}>
+                    <div style={{ fontWeight: 500, fontSize: '0.82rem', color: 'var(--ink)' }}>
                       Hint Controls
                     </div>
                     <div style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>
@@ -677,7 +673,7 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
                 >
                   <Icon name="i-layout-grid" size="md" style={{ color: activeAoi === 'Answer Options' ? 'var(--ok)' : 'var(--muted)' }} />
                   <div>
-                    <div style={{ fontWeight: 500, fontSize: '0.8rem', color: 'var(--ink)' }}>
+                    <div style={{ fontWeight: 500, fontSize: '0.82rem', color: 'var(--ink)' }}>
                       Answer Options
                     </div>
                     <div style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>
@@ -687,34 +683,22 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
                 </div>
               </div>
 
-              {/* Real-time gaze pointer indicator */}
-              {liveGaze && containerRef.current && (() => {
-                const cRect = containerRef.current.getBoundingClientRect();
-                const relX = liveGaze.x - cRect.left;
-                const relY = liveGaze.y - cRect.top;
-
-                if (relX >= 0 && relX <= cRect.width && relY >= 0 && relY <= cRect.height) {
-                  return (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        left: `${relX}px`,
-                        top: `${relY}px`,
-                        transform: 'translate(-50%, -50%)',
-                        width: '12px',
-                        height: '12px',
-                        borderRadius: '50%',
-                        background: 'var(--accent)',
-                        border: '2px solid #ffffff',
-                        pointerEvents: 'none',
-                        transition: 'left 0.04s linear, top 0.04s linear',
-                        zIndex: 99
-                      }}
-                    />
-                  );
-                }
-                return null;
-              })()}
+              {/* Real-time gaze pointer indicator directly manipulated via ref */}
+              <div
+                ref={dotRef}
+                style={{
+                  position: 'absolute',
+                  display: 'none',
+                  transform: 'translate(-50%, -50%)',
+                  width: '12px',
+                  height: '12px',
+                  borderRadius: '50%',
+                  background: 'var(--accent)',
+                  border: '2px solid #ffffff',
+                  pointerEvents: 'none',
+                  zIndex: 99
+                }}
+              />
             </div>
           )}
         </div>
@@ -724,18 +708,17 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
           className="edge"
           style={{
             borderTop: '1px solid var(--line)',
-            paddingTop: '6px',
-            alignItems: 'center',
-            flexShrink: 0
+            paddingTop: '8px',
+            alignItems: 'center'
           }}
         >
-          <div className="l" style={{ gap: '6px' }}>
+          <div className="l" style={{ gap: '8px' }}>
             {onBack && (
               <button
                 type="button"
                 className="ibtn tb"
                 onClick={onBack}
-                style={{ height: '30px', padding: '0 10px', borderRadius: '6px', fontSize: '0.78rem' }}
+                style={{ height: '32px', padding: '0 12px', borderRadius: '6px', fontSize: '0.8rem' }}
               >
                 <Icon name="i-arrow-left" size="sm" />
                 <span>Back</span>
@@ -746,7 +729,7 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
               type="button"
               className="ibtn tb"
               onClick={handleRecalibrate}
-              style={{ height: '30px', padding: '0 10px', borderRadius: '6px', fontSize: '0.78rem' }}
+              style={{ height: '32px', padding: '0 12px', borderRadius: '6px', fontSize: '0.8rem' }}
               title="Reset calibration model and redo 9-point setup"
             >
               <Icon name="i-replay" size="sm" />
@@ -754,13 +737,13 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
             </button>
           </div>
 
-          <div className="r" style={{ gap: '6px' }}>
+          <div className="r" style={{ gap: '8px' }}>
             {phase === 'calibrating' && (
               <button
                 type="button"
                 className="ibtn tb"
                 onClick={startVerification}
-                style={{ height: '30px', padding: '0 10px', borderRadius: '6px', fontSize: '0.78rem' }}
+                style={{ height: '32px', padding: '0 12px', borderRadius: '6px', fontSize: '0.8rem' }}
               >
                 <span>Skip to Verification</span>
                 <Icon name="i-arrow" size="sm" />
@@ -773,8 +756,8 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
                 className="ibtn primary"
                 onClick={onComplete}
                 style={{
-                  height: '32px',
-                  padding: '0 14px',
+                  height: '34px',
+                  padding: '0 16px',
                   borderRadius: '6px',
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -794,13 +777,13 @@ export const CalibrationStep: React.FC<CalibrationStepProps> = ({ onComplete, on
                 className="ibtn primary"
                 onClick={onComplete}
                 style={{
-                  height: '30px',
-                  padding: '0 12px',
+                  height: '32px',
+                  padding: '0 14px',
                   borderRadius: '6px',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  fontSize: '0.78rem'
+                  fontSize: '0.8rem'
                 }}
                 title="Proceed directly to trials"
               >

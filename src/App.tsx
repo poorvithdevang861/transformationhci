@@ -57,7 +57,7 @@ export const App: React.FC = () => {
           onToggleTheme={handleToggleTheme}
         />
 
-        <main style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <main style={{ flex: 1 }}>
           {currentView === 'study' && (
             <StudyContainer
               onNavigate={setCurrentView}
