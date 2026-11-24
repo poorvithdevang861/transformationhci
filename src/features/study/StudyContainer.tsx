@@ -131,7 +131,8 @@ export const StudyContainer: React.FC<StudyContainerProps> = ({ onNavigate, onSt
         margin: '0 auto',
         width: '100%',
         paddingBottom: step === 'calibrate' ? '0' : '32px',
-        height: step === 'calibrate' ? 'calc(100vh - 60px)' : 'auto',
+        flex: step === 'calibrate' ? 1 : undefined,
+        minHeight: step === 'calibrate' ? 0 : undefined,
         display: 'flex',
         flexDirection: 'column',
         overflow: step === 'calibrate' ? 'hidden' : 'visible'

@@ -29,10 +29,11 @@ export const Header: React.FC<HeaderProps> = ({
         background: 'var(--bg)',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
-        paddingTop: '14px',
-        paddingBottom: '14px',
+        paddingTop: '10px',
+        paddingBottom: '10px',
         borderBottom: '1px solid var(--line)',
-        width: '100%'
+        width: '100%',
+        marginBottom: '10px'
       }}
     >
       <div className="l">
